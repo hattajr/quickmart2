@@ -1,0 +1,28 @@
+[project]
+name = "ikmimart"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "pydantic",
+    "python-multipart",
+    "fastapi-cache",
+    "jinja2-fragments>=1.8.0",
+    "loguru>=0.7.3",
+    "polars>=1.26.0",
+    "psycopg2-binary>=2.9.10",
+    "pyarrow>=18.1.0",
+    "python-dotenv>=1.1.0",
+    "python-multipart>=0.0.20",
+    "requests>=2.32.3",
+    "connectorx",
+    "jinja2-fragments>=1.8.0",
+    "itsdangerous",
+    "DeepImageSearch",
+    "ipykernel",
+
+]

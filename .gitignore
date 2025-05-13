@@ -1,0 +1,7 @@
+.trash/
+.env*
+.venv*/
+__pycache__/
+*.db
+data/
+cache/
