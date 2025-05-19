@@ -16,6 +16,6 @@ SQLITE_DB = "sqlite:///data.db"  # Valid SQLite connection string format for rel
 #     engine="sqlalchemy"
 # )
 
-q = f"SELECT * FROM products_new limit 1"
-df = pl.read_database(query=q, connection=next(get_local_db()))
-print(df)
+# q = f"SELECT * FROM products_new limit 1"
+# df = pl.read_database(query=q, connection=next(get_local_db()))
+# print(df)

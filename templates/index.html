@@ -2,7 +2,9 @@
 {%block main_content%}
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-blue-600">IKMI MART</h1>
+        {%block update_database%}
+        <h1 role="button" hx-get="/update-database" class="text-xl font-bold text-blue-600 hover:text-blue-800">IKMI MART</h1>
+        {% endblock %}
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
             <a href="#" hx-get="/cart" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
                 class="flex items-center bg-indigo-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-md transition-all duration-200 relative">

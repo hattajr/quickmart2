@@ -18,6 +18,7 @@ import asyncio
 from jinja2_fragments.fastapi import Jinja2Blocks
 import datetime
 from collections import deque
+from db.database import MASTER_DATABASE_URL, LOCAL_DATABASE_URL
 
     
 
@@ -403,6 +404,22 @@ async def checkout_confirm(request: Request, response: Response):
     redirect.delete_cookie(SESSION_COOKIE_NAME)
     return redirect
 
+
+@app.get("/update-database", response_class=HTMLResponse)
+async def update_database(request: Request, response:Response):
+    sqlite_DB = LOCAL_DATABASE_URL
+    q = f"SELECT * FROM products_new"
+    df = pl.read_database_uri(query=q, uri=MASTER_DATABASE_URL)
+    df.write_database(
+        table_name="products_new",
+        connection=sqlite_DB,
+        if_table_exists="replace",
+        engine="sqlalchemy"
+    )
+    context = {
+        "request": request,
+    }
+    return templates.TemplateResponse("index.html", context=context, block_name="update_database")
 
 
 @app.post("/upload", response_class=HTMLResponse)
