@@ -1,208 +1,443 @@
-import uvicorn
-from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+import sys
+import uuid
+import os
+
+import polars as pl
+from fastapi import FastAPI, File, Request, UploadFile, Query, Form, Depends, Response
+from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from typing import Optional, Dict, List
+from fastapi.templating import Jinja2Templates
+from loguru import logger
+import shutil
+from dotenv import load_dotenv
+from aiocache import SimpleMemoryCache
+from uuid import uuid4
+import asyncio
+from jinja2_fragments.fastapi import Jinja2Blocks
+import datetime
 
-# --- Application Setup ---
+    
+
+
+from db.database import get_local_db
+from inference import get_prediction_result
+from sqlalchemy.orm import Session
+
+load_dotenv()
+
+logger.remove()
+logger.add(sys.stderr, level="DEBUG")
+
 app = FastAPI()
+cache = SimpleMemoryCache()
 
-# Mount static files (optional, if you have local images/css)
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+PRODUCT_IMAGE_URL = os.getenv("PRODUCT_IMAGE_URL")
+IMAGE_FORMAT = "png"
 
-# Setup Jinja2 templates
-templates = Jinja2Templates(directory="templates")
-
-# --- Test Data (NO ORM - using in-memory dictionaries) ---
-PRODUCTS = {
-    "prod1": {"id": "prod1", "name": "Wireless Mouse", "price": 29.99, "description": "Ergonomic wireless mouse", "image_url": "https://via.placeholder.com/300x200/777/fff?text=Wireless+Mouse"},
-    "prod2": {"id": "prod2", "name": "Mechanical Keyboard", "price": 79.99, "description": "RGB Backlit Keyboard", "image_url": "https://via.placeholder.com/300x200/555/fff?text=Mech+Keyboard"},
-    "prod3": {"id": "prod3", "name": "USB-C Hub", "price": 45.50, "description": "7-in-1 USB-C Hub Adapter", "image_url": None}, # No image example
-    "prod4": {"id": "prod4", "name": "Monitor Stand", "price": 35.00, "description": "Adjustable height stand", "image_url": "https://via.placeholder.com/300x200/999/fff?text=Monitor+Stand"},
-    "prod5": {"id": "prod5", "name": "Webcam HD 1080p", "price": 55.00, "description": "Webcam with privacy shutter", "image_url": "https://via.placeholder.com/300x200/444/fff?text=Webcam+HD"},
-    "prod6": {"id": "prod6", "name": "Laptop Sleeve", "price": 19.99, "description": "13-inch Neoprene Sleeve", "image_url": "https://via.placeholder.com/300x200/666/fff?text=Laptop+Sleeve"},
-}
-
-# In-memory cart storage (for demonstration purposes ONLY)
-# In a real app, this should be tied to user sessions (e.g., using cookies/session middleware)
-CART: Dict[str, int] = {"prod1": 1, "prod3": 2} # Start with some items for testing
+app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/images", StaticFiles(directory="images"), name="images")
+# templates = Jinja2Templates(directory="templates")
+templates = Jinja2Blocks(directory="templates")
 
 
-# --- Helper Functions ---
-def get_all_products() -> List[Dict]:
-    return list(PRODUCTS.values())
-
-def search_products(query: str) -> List[Dict]:
-    if not query:
-        return get_all_products()
-    query = query.lower()
-    return [
-        p for p in PRODUCTS.values()
-        if query in p['name'].lower() or (p['description'] and query in p['description'].lower())
-    ]
-
-def get_cart_details() -> (List[Dict], float):
-    """ Returns a list of cart item details and the total price """
-    cart_items = []
-    total = 0.0
-    for product_id, quantity in CART.items():
-        product = PRODUCTS.get(product_id)
-        if product:
-            item_total = product['price'] * quantity
-            cart_items.append({
-                "product": product,
-                "quantity": quantity,
-                "item_total": item_total
-            })
-            total += item_total
-    return cart_items, total
-
-def get_cart_item_count() -> int:
-    """ Returns the total number of individual items in the cart """
-    return sum(CART.values())
+# Data structure to hold user carts
+# {session_id: {product_id: qty}}
+user_carts = {}
 
 
-# --- Routes ---
+def get_now() -> datetime.datetime:
+    return datetime.datetime.now(datetime.UTC)
 
-# Product Listing / Home Page
+def query_products(query:str, db:Session) -> pl.DataFrame:
+    df = pl.read_database(query=query, connection=db)
+    logger.debug(df)
+    if not df.is_empty():
+        df = (
+            df
+            .with_columns(
+                image_url = pl.when(pl.col("barcode").is_not_null())
+                .then(pl.concat_str([
+                    pl.lit(PRODUCT_IMAGE_URL),
+                    pl.col("barcode")
+                ], separator="/"))
+                .otherwise(None)
+            )
+            .with_columns(
+                image_url = pl.when(pl.col("image_url").is_not_null())
+                .then(pl.concat_str([
+                    pl.col("image_url"),
+                    pl.lit(IMAGE_FORMAT)
+                ], separator="."))
+                .otherwise(None)
+            )
+        )
+        return df
+    return pl.DataFrame()
+
+def search_product_by_keyword(keyword: str, db:Session) -> pl.DataFrame:    
+    q = f"SELECT * FROM products_new WHERE name LIKE '%{keyword}%'"
+    return query_products(q, db)
+
+def search_product_by_id(id: int | list[int], db:Session) -> pl.DataFrame:
+    if isinstance(id, list):
+        id = ",".join([str(i) for i in id])
+        query = f"SELECT * FROM products_new WHERE id IN ({id})"
+    else:
+        id = str(id)
+        query = f"SELECT * FROM products_new WHERE id = {id}"
+    return query_products(query, db)
+
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    products = get_all_products()
-    cart_item_count = get_cart_item_count()
-    return templates.TemplateResponse("products/products.html", {
-        "request": request,
-        "products": products,
-        "cart_item_count": cart_item_count, # Pass initial count
-        "search_query": ""
-    })
-
-# Product Search (HTMX)
-@app.get("/products/search", response_class=HTMLResponse)
-async def search_products_htmx(request: Request, query: Optional[str] = ""):
-    products = search_products(query)
-    # Return only the product list partial
-    return templates.TemplateResponse("products/_product_list.html", {
-        "request": request,
-        "products": products
-        # No need to pass cart_item_count here as it's not used in the partial
-    })
-
-
-# Shopping Cart Page
-@app.get("/cart", response_class=HTMLResponse)
-async def view_cart(request: Request):
-    cart_items, cart_total = get_cart_details()
-    cart_item_count = get_cart_item_count()
-    return templates.TemplateResponse("cart/cart.html", {
-        "request": request,
-        "cart_items": cart_items,
-        "cart_total": cart_total,
-        "cart_item_count": cart_item_count
-    })
-
-# Add Item to Cart (HTMX)
-@app.post("/cart/add/{product_id}", response_class=HTMLResponse)
-async def add_to_cart(request: Request, product_id: str):
-    if product_id not in PRODUCTS:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    current_quantity = CART.get(product_id, 0)
-    CART[product_id] = current_quantity + 1
-
-    # Return the updated cart count badge HTML fragment
-    # This replaces the target specified in the button's hx-target
-    new_count = get_cart_item_count()
-    return HTMLResponse(f"""
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-        <span class="relative inline-flex rounded-full h-4 w-4 bg-indigo-500 text-white text-xs items-center justify-center">
-            {new_count}
-        </span>
-    """)
-
-# Update Cart Item Quantity (HTMX)
-@app.post("/cart/update/{product_id}", response_class=HTMLResponse)
-async def update_cart_item(request: Request, product_id: str, action: str = Form(...)):
-    if product_id not in CART:
-        raise HTTPException(status_code=404, detail="Item not in cart")
-
-    current_quantity = CART[product_id]
-
-    if action == "increase":
-        CART[product_id] = current_quantity + 1
-    elif action == "decrease":
-        if current_quantity > 1:
-            CART[product_id] = current_quantity - 1
-        else:
-            # If decreasing quantity to 0, remove the item
-            del CART[product_id]
+def index(request: Request, db:Session=Depends(get_local_db)):
+    # if not request.headers.get('HX-Request'):
+    #     user_carts.clear()
+    #     return templates.TemplateResponse("index.html", {"request": request})
+    session_id = request.cookies.get("session_id")
+    if session_id and session_id in user_carts:
+        logger.debug(user_carts[session_id])
+        df_cart = get_cart(session_id, db=db)
+        total_items = df_cart["qty"].sum()
+        logger.debug(total_items)
     else:
-        raise HTTPException(status_code=400, detail="Invalid action")
-
-    # Re-render the entire cart details section as requested by hx-target="#cart-details"
-    cart_items, cart_total = get_cart_details()
-    cart_item_count = get_cart_item_count() # Need this for the base template context if we were rendering the full page
-                                            # For just the cart details partial, it's not strictly needed in the context
-                                            # unless cart.html itself expects it. Let's be safe.
-
-    # We need to simulate rendering the block inside cart.html
-    # A cleaner way might be a dedicated partial template for #cart-details content
-    # For simplicity here, we re-render cart.html but *only* return the #cart-details block
-    # NOTE: This is inefficient. A dedicated partial or OOB swaps would be better.
-    # Let's render the full cart template and assume the browser handles the swap correctly.
-    return templates.TemplateResponse("cart/cart.html", {
+        total_items = 0
+    context = {
         "request": request,
-        "cart_items": cart_items,
-        "cart_total": cart_total,
-        "cart_item_count": cart_item_count # Need for base context when rendering full page
-    }, headers={"HX-Trigger": "cartUpdate"}) # Also trigger global event
+        "last_query": user_carts[session_id].get("last_query") if session_id and session_id in user_carts else None,
+        "products": [],
+        "total_items": total_items,
+    }
 
 
-# Remove Item from Cart (HTMX)
+    return templates.TemplateResponse(request=request, name="index.html", context=context)
+
+@app.get("/search", response_class=HTMLResponse)
+def search(request: Request, q:str = Query(...), db:Session=Depends(get_local_db)):
+    if not request.headers.get('HX-Request'):
+        return RedirectResponse(url="/")
+
+    keyword = q
+    logger.debug(keyword)
+    if not keyword:
+        return templates.TemplateResponse("result_fragment.html", {"request": request, "products": []})
+
+    products = search_product_by_keyword(keyword, db)
+
+    session_id = request.cookies.get("session_id")
+    total_items = 0
+    if session_id and session_id in user_carts:
+        logger.debug(session_id)
+        df_cart = get_cart(session_id, db=db)
+        total_items = df_cart["qty"].sum()
+        context = {
+                "request": request,
+                "last_query": keyword,
+                "products": products.to_dicts(),
+                "total_items": total_items,
+            }
+        return templates.TemplateResponse(
+            "index.html",
+            context=context
+        )
+
+
+    context = {
+            "request": request,
+            "query": keyword,
+            "products": products.to_dicts(),
+        }
+    return templates.TemplateResponse(
+        "result_fragment.html",
+        context=context
+    )
+
+
+@app.post("/search/add/{query}", response_class=HTMLResponse)
+async def add_to_cart(request: Request, query:str,  product_id: int=Query(...), db:Session=Depends(get_local_db)):
+    session_id = request.cookies.get("session_id")
+    logger.debug(session_id)
+    if not session_id:
+        session_id = str(uuid4())
+        user_carts[session_id] = {}
+    if session_id not in user_carts:
+        user_carts[session_id] = {"items": {}}
+    if product_id not in user_carts[session_id]["items"]:
+        user_carts[session_id]["items"][product_id] = {"qty": 0}
+    user_carts[session_id]["items"][product_id]["qty"] += 1
+    user_carts[session_id]["items"][product_id]["updated_at"] = get_now()
+    user_carts[session_id]["last_query"]=query
+    logger.debug(user_carts)
+
+    df_cart = get_cart(session_id, db=db)
+
+    context={
+        "session_id": session_id,
+        "total_items": df_cart["qty"].sum(),
+    }
+    logger.debug(context)
+    response =  templates.TemplateResponse(
+        request = request,
+        name="cart_count_badge.html",
+        context=context,
+        # block_name="cart_icon"
+    )
+    response.set_cookie(key="session_id", value=session_id)
+    return response
+
 @app.post("/cart/remove/{product_id}", response_class=HTMLResponse)
-async def remove_from_cart(request: Request, product_id: str):
-    if product_id not in CART:
-        # Item might already be removed, just render the current state
-        pass
-    else:
-        del CART[product_id]
+async def remove_from_cart(request: Request, product_id: int, qty: int = 1):
+    session_id = request.cookies.get("session_id")
+    if session_id and session_id in user_carts:
+        if product_id in user_carts[session_id]["items"]:
+            user_carts[session_id]["items"][product_id]["qty"] -= qty
+            if user_carts[session_id]["items"][product_id]["qty"] <= 0:
+                del user_carts[session_id]["items"][product_id]
+    return
 
-    # Re-render the entire cart details section
-    cart_items, cart_total = get_cart_details()
-    cart_item_count = get_cart_item_count()
+@app.post("/cart/item/{product_id}", response_class=HTMLResponse)
+async def cart_item_change_count(request: Request, product_id: int, action: str = Query(...), db:Session=Depends(get_local_db)):
+    session_id = request.cookies.get("session_id")
+    def _updated_data():
+        logger.info("Get data from cart")
+        df_cart = get_cart(session_id, db=db)
+        df_product = df_cart.filter(pl.col("id") == product_id)
+        context={
+            "session_id": session_id,
+            "product": df_product.to_dicts()[0] if not df_product.is_empty() else None,
+            "total_price": df_cart["total_price"].sum(),
+            "total_items": df_cart["qty"].sum()
+        }
+        return templates.TemplateResponse(
+            request = request,
+            name="cart/partials/item_count_change.html",
+            context=context,
+        )
+    if session_id and session_id in user_carts:
+        if product_id in user_carts[session_id]["items"]:
+            if action == "increase":
+                user_carts[session_id]["items"][product_id]["qty"] += 1
+                return _updated_data()
+            elif action == "decrease":
+                if user_carts[session_id]["items"][product_id]["qty"] <= 1:
+                    user_carts[session_id]["items"][product_id]["qty"] = 1
+                    return _updated_data()
+                else:
+                    user_carts[session_id]["items"][product_id]["qty"] -= 1
+                    return _updated_data()
+            elif action == "remove":
+                del user_carts[session_id]["items"][product_id]
+                logger.info("Remove item from cart")
+                df_cart = get_cart(session_id, db=db)
+                if df_cart.is_empty():
+                    return templates.TemplateResponse(
+                        request = request,
+                        name="cart/partials/cart.html",
+                    )
+                context={
+                    "cart": df_cart.to_dicts(),
+                    "session_id": session_id,
+                    "total_price": df_cart["total_price"].sum(),
+                    "total_items": df_cart["qty"].sum()
+                }
+                return templates.TemplateResponse(
+                    request = request,
+                    name="cart/partials/cart.html",
+                    context=context,
+                )
 
-    # Render the full cart page/template again, HTMX will swap #cart-details
-    return templates.TemplateResponse("cart/cart.html", {
-        "request": request,
-        "cart_items": cart_items,
-        "cart_total": cart_total,
-        "cart_item_count": cart_item_count
-    }, headers={"HX-Trigger": "cartUpdate"}) # Trigger global event
+@app.post("/cart/clear", response_class=HTMLResponse)
+async def clear_cart(request: Request):
+    session_id = request.cookies.get("session_id")
+    if session_id and session_id in user_carts:
+        del user_carts[session_id]
+    return templates.TemplateResponse(
+        request = request,
+        name="cart/partials/cart.html",
+    )
 
-# Get Cart Count (HTMX - for header badge)
-@app.get("/cart/count", response_class=HTMLResponse)
-async def get_cart_count_htmx(request: Request):
-    # This endpoint is triggered by the cart icon in the header
-    # It returns the HTML fragment for the badge count
-    count = get_cart_item_count()
-    # Check if cart is empty to potentially hide the badge or show 0
-    if count == 0:
-         # Return an empty span or styled '0' - let's return 0 styled
-         return HTMLResponse(f"""
-             <span class="relative inline-flex rounded-full h-4 w-4 bg-gray-400 text-white text-xs items-center justify-center">
-                 0
-             </span>
-         """)
-    else:
-        return HTMLResponse(f"""
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-4 w-4 bg-indigo-500 text-white text-xs items-center justify-center">
-                {count}
-            </span>
-        """)
+@app.get("/cart", response_class=HTMLResponse)
+async def get_cart(request: Request, db:Session=Depends(get_local_db)):
+    session_id = request.cookies.get("session_id")
+    logger.debug(user_carts[session_id])
+    # if not session_id:
+    #     session_id = str(uuid4())
+    #     user_carts[session_id] = {}
+    # if session_id not in user_carts:
+    #     user_carts[session_id] = {}
+    # if session_id in user_carts:
+    #     user_carts[session_id] = user_carts[session_id]
+    # else:
+    #     user_carts[session_id] = {}
+
+    df_cart = get_cart(session_id, db=db)
+    logger.debug(df_cart)
+
+    context = dict(
+        cart=df_cart.to_dicts(),
+        total_price=df_cart["total_price"].sum(),
+        total_items=df_cart["qty"].sum(),
+        last_query=user_carts[session_id].get("last_query"),
+    )
+    if request.headers.get('HX-Request'):
+        return templates.TemplateResponse(
+            request=request,
+            name="cart/partials/cart.html",
+            context=context
+        )
+    return templates.TemplateResponse(
+        request=request,
+        name="cart/cart.html",
+        context=context
+    )
+
+def get_cart(session_id:str, db:Session) -> pl.DataFrame:
+    logger.debug(user_carts[session_id])
+    if not user_carts.get(session_id):
+        return pl.DataFrame()
+
+    cart = []
+    for product_id, product in user_carts[session_id]["items"].items():
+        cart.append(
+            dict(
+                id = product_id,
+                qty = product["qty"],
+                updated_at = product["updated_at"],
+            )
+        )
+    
+    df_cart = pl.DataFrame(cart)
+    df_product = search_product_by_id(list(user_carts[session_id]["items"].keys()), db=db)
+    logger.debug(df_product)
+    if df_product.is_empty():
+        return pl.DataFrame()
+
+    df_result = (
+        df_cart
+        .join(
+            df_product,
+            left_on="id",
+            right_on="id",
+        )
+        .with_columns(
+            total_price = pl.col("qty") * pl.col("price")
+        )
+        .sort("updated_at", descending=True)
+    )
+    return df_result
 
 
-# --- Run the App ---
-if __name__ == "__main__":
-    # Use host="0.0.0.0" to make it accessible on your network
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+@app.get("/cart/checkout", response_class=HTMLResponse)
+async def checkout(request: Request, db:Session=Depends(get_local_db)):
+    session_id = request.cookies.get("session_id")
+    df_cart = get_cart(session_id, db=db)
+    item_count = df_cart["qty"].sum()
+    total_price = df_cart["total_price"].sum()
+
+    account_info = {
+        "bank": "HANA BANK",
+        "name": "APRILIYANTO FADA",
+        "account_number": "3989 1053 191007",
+        "phone": "010 5608 2996",
+    }
+    context = {
+        "item_count": item_count,
+        "total_price": f"{total_price:,.0f}",
+        "account_info": account_info,
+    }
+
+    return templates.TemplateResponse(
+        request=request,
+        name="cart/checkout_modal.html",
+        context=context
+    )
+@app.get("/cart/checkout/confirm", response_class=HTMLResponse)
+async def checkout_confirm(request: Request, response: Response):
+    session_id = request.cookies.get("session_id")
+    if session_id and session_id in user_carts:
+        # Clear the cart data
+        del user_carts[session_id]
+        # Expire the session cookie
+        response.set_cookie(key="session_id", value="", expires=0, max_age=0)
+        logger.debug(user_carts)
+    
+    # Create a response with cache-control headers to prevent back navigation
+    redirect = RedirectResponse(url="/", status_code=303)
+    # Add headers to prevent caching
+    redirect.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
+    redirect.headers["Pragma"] = "no-cache"
+    redirect.headers["Expires"] = "0"
+    return redirect
+
+
+
+@app.post("/upload", response_class=HTMLResponse)
+async def upload_image(request: Request, file: UploadFile = File(...), db:Session=Depends(get_local_db)):
+
+    image_id = str(uuid.uuid4())
+    file_path = f"/home/hattajr/lab/ikmimart/.trash/test_images/{image_id}.jpg"
+
+    file_paths = [
+        # "/home/hattajr/lab/ikmimart/.trash/belinis2.jpg"
+        # "/home/hattajr/lab/ikmimart/.trash/many.jpg",
+        # "/home/hattajr/lab/ikmimart/.trash/many1.jpg",
+        "/home/hattajr/lab/ikmimart/.trash/many2.jpg",
+    ]
+    file_path = file_paths[uuid.uuid4().int % len(file_paths)]
+
+    logger.debug(file_path)
+    # with open(file_path, "wb") as f:
+    #     shutil.copyfileobj(file.file, f)
+    
+
+    context = {
+            "request": request,
+            "products": {}
+        }
+    df_prediction = get_prediction_result(file_path)
+    if df_prediction is None:
+        logger.info("No prediction found None")
+        return templates.TemplateResponse(
+            "result_fragment.html",
+            context=context
+        )
+
+    if df_prediction.is_empty():
+        logger.info("No prediction found Empty")
+        return templates.TemplateResponse(
+            "result_fragment.html",
+            context=context
+        )
+
+    dfs_queried = []
+    for product in df_prediction.to_dicts():
+        logger.debug(product)
+        keywords = product.get("keywords")
+        found = False
+        for keyword in keywords:
+            df = search_product_by_keyword(keyword, db=db)
+            logger.debug(df)
+            if not df.is_empty():
+                dfs_queried.append(df)
+                found = True
+                break
+        if found:
+            continue
+
+    # IF NOT FOUND, SPLIT ALL THE KEYWORD FOR EACH WORD AND START SEAARCH AGAIN
+
+    df_result = pl.concat(dfs_queried, how="vertical_relaxed")
+    # df_result = pl.DataFrame()
+    # if df_result.is_empty():
+    #     new_path = f"/home/hattajr/lab/ikmimart/.trash/test_images/{image_id}__not_found.jpg"
+    #     os.rename(file_path, new_path)
+
+    logger.debug(df_result)
+    products = df_result.to_dicts()
+    context = {
+            "request": request,
+            "products": products,
+        }
+    return templates.TemplateResponse(
+        "result_fragment.html",
+        context=context
+    )

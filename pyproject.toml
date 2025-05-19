@@ -10,7 +10,6 @@ dependencies = [
     "sqlalchemy",
     "pydantic",
     "python-multipart",
-    "fastapi-cache",
     "jinja2-fragments>=1.8.0",
     "loguru>=0.7.3",
     "polars>=1.26.0",
@@ -24,5 +23,5 @@ dependencies = [
     "itsdangerous",
     "DeepImageSearch",
     "ipykernel",
-
+    "aiocache"
 ]

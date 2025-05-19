@@ -2,16 +2,12 @@ version = 1
 requires-python = ">=3.12"
 
 [[package]]
-name = "aioredis"
-version = "1.3.1"
+name = "aiocache"
+version = "0.12.3"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "async-timeout" },
-    { name = "hiredis" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/2c/2a/662e5e79dde5d00964b995d50e38ecdefeeeb09b37edafff193c7e850f46/aioredis-1.3.1.tar.gz", hash = "sha256:15f8af30b044c771aee6787e5ec24694c048184c7b9e54c3b60c750a4b93273a", size = 155577 }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/64/b945b8025a9d1e6e2138845f4022165d3b337f55f50984fbc6a4c0a1e355/aiocache-0.12.3.tar.gz", hash = "sha256:f528b27bf4d436b497a1d0d1a8f59a542c153ab1e37c3621713cb376d44c4713", size = 132196 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b0/64/1b1612d0a104f21f80eb4c6e1b6075f2e6aba8e228f46f229cfd3fdac859/aioredis-1.3.1-py3-none-any.whl", hash = "sha256:b61808d7e97b7cd5a92ed574937a079c9387fdadd22bfbfa7ad2fd319ecc26e3", size = 65259 },
+    { url = "https://files.pythonhosted.org/packages/37/d7/15d67e05b235d1ed8c3ce61688fe4d84130e72af1657acadfaac3479f4cf/aiocache-0.12.3-py2.py3-none-any.whl", hash = "sha256:889086fc24710f431937b87ad3720a289f7fc31c4fd8b68e9f918b9bacd8270d", size = 28199 },
 ]
 
 [[package]]
@@ -53,15 +49,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/4a/e7/82da0a03e7ba5141f05cce0d302e6eed121ae055e0456ca228bf693984bc/asttokens-3.0.0.tar.gz", hash = "sha256:0dcd8baa8d62b0c1d118b399b2ddba3c4aff271d0d7a9e0d4c1681c79035bbc7", size = 61978 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/25/8a/c46dcc25341b5bce5472c718902eb3d38600a903b14fa6aeecef3f21a46f/asttokens-3.0.0-py3-none-any.whl", hash = "sha256:e3078351a059199dd5138cb1c706e6430c05eff2ff136af5eb4790f9d28932e2", size = 26918 },
-]
-
-[[package]]
-name = "async-timeout"
-version = "5.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a5/ae/136395dfbfe00dfc94da3f3e136d0b13f394cba8f4841120e34226265780/async_timeout-5.0.1.tar.gz", hash = "sha256:d9321a7a3d5a6a5e187e824d2fa0793ce379a202935782d555d6e9d2735677d3", size = 9274 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/ba/e2081de779ca30d473f21f5b30e0e737c438205440784c7dfc81efc2b029/async_timeout-5.0.1-py3-none-any.whl", hash = "sha256:39e3809566ff85354557ec2398b55e096c8364bacac9405a7a1fa429e77fe76c", size = 6233 },
 ]
 
 [[package]]
@@ -330,15 +317,6 @@ wheels = [
 ]
 
 [[package]]
-name = "fastapi-cache"
-version = "0.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aioredis" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/4d/f8/0cbd6a6ac2309bedff4f98a345d9629953afdf0dc25f7b2f2218384d881f/fastapi-cache-0.1.0.tar.gz", hash = "sha256:1f57e6e666672c84e3dd5d4141ec808d5339d158e10c87a87eb9ce11ff8b1735", size = 4786 }
-
-[[package]]
 name = "filelock"
 version = "3.18.0"
 source = { registry = "https://pypi.org/simple" }
@@ -425,44 +403,6 @@ wheels = [
 ]
 
 [[package]]
-name = "hiredis"
-version = "3.1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/49/6f/a1b4749fa7d980f4d11e7f6da42658520fb9a92538844b2012427ad9aa06/hiredis-3.1.1.tar.gz", hash = "sha256:63f22cd7b441cbe13d24087b338e4e6a8f454f333cf35a6ed27ef13a60ca8b0b", size = 87898 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/22/b59206aa280f7cd8b6838393765da19648258c0f7d0a65513ea9ca83d373/hiredis-3.1.1-cp312-cp312-macosx_10_15_universal2.whl", hash = "sha256:b7c3e47b3eec883add6ff6d8dbcc314e7bacd73c5146e4587aa3610a1d59c1b0", size = 81402 },
-    { url = "https://files.pythonhosted.org/packages/4a/d2/9c889337dbd812a27725c84773db187f014482708aa21d1f4aac17afe805/hiredis-3.1.1-cp312-cp312-macosx_10_15_x86_64.whl", hash = "sha256:dba871b974ebd60258cf723a096a4170cc1241d9a32273513fc9da37410ff4a1", size = 44709 },
-    { url = "https://files.pythonhosted.org/packages/de/e3/66e4345a39fbc9efb81191ccba58debc18aae03fbec7048a59624284377b/hiredis-3.1.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:2f444c482e817452ccb598140c6544c803480346f572e0b42fece391ed70ff26", size = 42606 },
-    { url = "https://files.pythonhosted.org/packages/dc/62/43f9b533bc1020814e0edab0b26ff473b63723a76fb4939c07f5693ba3a5/hiredis-3.1.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5c63a753a0ba0bb0bc92041682623cab843114a0cf87875cd9aca0ab0d833337", size = 170110 },
-    { url = "https://files.pythonhosted.org/packages/dd/6d/6d186f2c0faa486f2615c10f78d85969999118115564fe5efa7ba36c2cbe/hiredis-3.1.1-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:93f1981e0f54e74de525266a2dca3f9740ca2eed03227b4f86d1ae8ef887d37b", size = 181043 },
-    { url = "https://files.pythonhosted.org/packages/65/b0/75de93fe61a643638bbe8d8197d312a06e20ec64a92a2bcef1746e1deb68/hiredis-3.1.1-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:e0e371c78b9e4715678ca17a59fc72c37483e53179c9a2d4babf85c383fc55c5", size = 170493 },
-    { url = "https://files.pythonhosted.org/packages/d9/bb/582df8cc41f0ab52c364eaf8ba0515a952c757d41d5f3e44d7b1bcc4eda4/hiredis-3.1.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d42cd753d4d85cf806037a01e4e6fa83c8db5b20b8d0cbfc2feec3daad2d563f", size = 171187 },
-    { url = "https://files.pythonhosted.org/packages/7a/46/46704ab52f3a334d5340d121f0692196059b31af27d1dde9279a79c897ba/hiredis-3.1.1-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:76b8f64de36c8607650c47951a1591996dcfe186ae158f88bac7e3976348cccc", size = 166707 },
-    { url = "https://files.pythonhosted.org/packages/1a/c2/50bbca04b21dd6bf208c429348230a0ef7d64091d3ee4ff2ad54fb204efe/hiredis-3.1.1-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:1a6f2e54bbad9e0831c5d88451676d7f116210f4f302055a84671ef69c5e935b", size = 164293 },
-    { url = "https://files.pythonhosted.org/packages/c1/07/157078368e4262c9029e8254f287ea851f95ec687dc78aed6d957b893af9/hiredis-3.1.1-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:8619f2a015dd8ba98214e76e7453bcdaaa8b04d81348369ad8975c1ff2792eb3", size = 163146 },
-    { url = "https://files.pythonhosted.org/packages/f6/1a/8bc58594b83fd4c94d8d531b061d8fc2af0a4659b5dd7bef5ad294f726d2/hiredis-3.1.1-cp312-cp312-musllinux_1_2_ppc64le.whl", hash = "sha256:1fd685aa1f9636da9548fa471abf37138033f1b4ec0d91f515ea5ed4d7d88b62", size = 175236 },
-    { url = "https://files.pythonhosted.org/packages/3a/b1/8f7fc62699b11adb453f91fc33bf738a8b73b38274bc392f24b9b2b1e2ff/hiredis-3.1.1-cp312-cp312-musllinux_1_2_s390x.whl", hash = "sha256:24b51d492b6628054eb4dce63eab0cadf483b87227fe6ee3b6de0038caed6544", size = 167789 },
-    { url = "https://files.pythonhosted.org/packages/f5/ab/35715b22dc1962bf6edf0dcde5fe62ca35221c81fe5b946a38e0da4d2f93/hiredis-3.1.1-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:0c7e43d3968000d75d97b2d24a6f1ee37d24b9a4472ba85f670e7d2d94c6b1f2", size = 165724 },
-    { url = "https://files.pythonhosted.org/packages/09/7f/345923dba3b9d6326accd20bddebe5a0a40abe28447581188a5da2c720eb/hiredis-3.1.1-cp312-cp312-win32.whl", hash = "sha256:b48578047c6bb3d0ea3ce37f0762e35e71d1f7cff8d940e2caa131359a12c5a7", size = 20191 },
-    { url = "https://files.pythonhosted.org/packages/92/f0/856832bf2558f35ea4db0d594176cf61b10dd6091d9029542362c29631d8/hiredis-3.1.1-cp312-cp312-win_amd64.whl", hash = "sha256:87b69e99301a33119cb31b19c6be7aed164c0df6b6343ba57b65deb23ae9251e", size = 21796 },
-    { url = "https://files.pythonhosted.org/packages/3e/93/7c9f61e8bd145f5933669c0d48ba8ed248b6ed2988beae039695378828b4/hiredis-3.1.1-cp313-cp313-macosx_10_15_universal2.whl", hash = "sha256:f22759efdb02f5e95884b1ad986574be86c7dd2ac4b05fe8e2b93826c6e680b3", size = 81404 },
-    { url = "https://files.pythonhosted.org/packages/29/76/8af1c24bd69d0c910281ddfeb603686220cdcb7e37d9df2eb39aaf31f5b0/hiredis-3.1.1-cp313-cp313-macosx_10_15_x86_64.whl", hash = "sha256:a9524a1f651e2d45eaf33865a0f412a0d1117f49661f09d8243a98c3d3f961a2", size = 44707 },
-    { url = "https://files.pythonhosted.org/packages/f6/a7/4d4dc0f420dafdd50bd7b22238da6ffd2e57de007b0f108da3c0936935c7/hiredis-3.1.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:0e6c9c6eb9929ca220002b28ce0976b1a90bb95ffcf08e6e2c51956d37a2318a", size = 42603 },
-    { url = "https://files.pythonhosted.org/packages/70/09/28b3a318e3e05060d814185855eacc0265ddfca8044c4ff7febe0f67e3ec/hiredis-3.1.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4614cc774bff82c2ed62f13facb732c03a8dc0c5e75cc276af61b5089c434898", size = 170379 },
-    { url = "https://files.pythonhosted.org/packages/47/a1/e85364f88b463cc4fd8c20c6f83977abeb8b7d0803f26b870231e9437e5c/hiredis-3.1.1-cp313-cp313-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:17e5ad9ed8d8913bdac6d567c9cf0c4f259e7950c3b318fe636ebb7383d3f16b", size = 181267 },
-    { url = "https://files.pythonhosted.org/packages/f7/cb/d7bd0a4387199aa206de2253ce1398547677c6a6895eee2e7e71625321c2/hiredis-3.1.1-cp313-cp313-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:340f3e9c33ae71e235a63770e339743254c91aba7b55d75a1ab6679e0d502aea", size = 170718 },
-    { url = "https://files.pythonhosted.org/packages/cd/48/00570c3e57767bb0935a862d22fd0300c5c491832648938dd7a1548bfc81/hiredis-3.1.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:56f2587e35a4f3f214d6f843e000af45422ebd81721a12add13108c1c4789332", size = 171387 },
-    { url = "https://files.pythonhosted.org/packages/46/e8/6993c834c783fd3d384943cea224e2c1e5cf37ab0895b0d89fa7f9acb339/hiredis-3.1.1-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:dba00f102b4414a6b33f3aa0ab6192d78c515fc4939a14d9c87461262047883f", size = 166764 },
-    { url = "https://files.pythonhosted.org/packages/25/2a/e05816b03c151cb246c7ec9a35b840cdb3b27f89253224cfa7878633d79f/hiredis-3.1.1-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:4bf5711a5bdbc284c406c8e9dd9154b4d93a54ba758f417c8b8c01133997059c", size = 164521 },
-    { url = "https://files.pythonhosted.org/packages/cc/9a/1c7cab2e92b8be240cedc859f8b870a0eb28bc0b93e1bed5ef94e284bfa6/hiredis-3.1.1-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:434614076066704efae38a538a6e1dcea9678c3de030a6ec2fe72d475e2594de", size = 163467 },
-    { url = "https://files.pythonhosted.org/packages/d6/b4/b3654be50623bb8036058600b128596bd04e15b5566d5d1b16d90c09e1ee/hiredis-3.1.1-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:7db1567a8aef8594c81ad67ff597b8ac86aa1ead585b8e8b51d33e234b817d68", size = 175530 },
-    { url = "https://files.pythonhosted.org/packages/69/c6/196ea580a2deed300c392cf42e3dc94c0204b76f468ac462bbcefd9b259a/hiredis-3.1.1-cp313-cp313-musllinux_1_2_s390x.whl", hash = "sha256:64cd1f6b5cf2904e64445c3a5e765fcbf30c5a0f132051a3c8d4bd24fa2fa3fa", size = 168094 },
-    { url = "https://files.pythonhosted.org/packages/19/a0/d16e9ceab7fa83223b4513ab82dd6b5a3566d333ea69c88fc06e8227e1e1/hiredis-3.1.1-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:330246da5c5c33fd7cb25e87e17eabdb1f03678e652ea0c46861f4318fc56c29", size = 165983 },
-    { url = "https://files.pythonhosted.org/packages/f1/4b/16069d1eb3eb4991ac194d1a0822f41c1aff02e8c621bbc45dd696e57067/hiredis-3.1.1-cp313-cp313-win32.whl", hash = "sha256:a227a02b603583c84cb6791b48bc428339ebccd80befed8f00cac5584fc29ca4", size = 20193 },
-    { url = "https://files.pythonhosted.org/packages/76/3c/24fcad4f3db2eb99fa3aedf678f623784e536ce30fca42ccf2e5979f97e5/hiredis-3.1.1-cp313-cp313-win_amd64.whl", hash = "sha256:5fa133c6f0fb09bf5f7dd3d722934f2908d209be1adba5c64b5227c0e875e88c", size = 21804 },
-]
-
-[[package]]
 name = "huggingface-hub"
 version = "0.31.2"
 source = { registry = "https://pypi.org/simple" }
@@ -494,10 +434,10 @@ name = "ikmimart"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "aiocache" },
     { name = "connectorx" },
     { name = "deepimagesearch" },
     { name = "fastapi" },
-    { name = "fastapi-cache" },
     { name = "ipykernel" },
     { name = "itsdangerous" },
     { name = "jinja2-fragments" },
@@ -515,10 +455,10 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiocache" },
     { name = "connectorx" },
     { name = "deepimagesearch" },
     { name = "fastapi" },
-    { name = "fastapi-cache" },
     { name = "ipykernel" },
     { name = "itsdangerous" },
     { name = "jinja2-fragments", specifier = ">=1.8.0" },

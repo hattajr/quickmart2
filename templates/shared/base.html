@@ -1,128 +1,90 @@
-{#templates/shared/base.html#}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title | default("Modern Shop") }}</title>
-    <!-- Tailwind CSS via CDN with @tailwindcss/browser -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" defer></script>
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous" defer></script>
-    <script src="https://unpkg.com/hyperscript.org@0.9.12" defer></script>
-
-    <style type="text/tailwindcss">
-        @tailwind base;
-        @tailwind components;
-        @tailwind utilities;
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IKMI MART</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <!-- <script src="/static/script.js" defer></script> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script> htmx.config.allowNestedOobSwaps = false; </script>
+    <style>
         body {
-            @apply bg-gradient-to-br from-gray-50 to-indigo-100 min-h-screen font-sans text-gray-900;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            /* Removed overflow: hidden */
         }
 
-        /* Global Components */
-        .product-card {
-            @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02];
+        .container-app {
+            width: 100%;
+            padding: 0 16px;
+            margin: 0 auto;
         }
 
-        .product-image {
-            @apply w-full h-48 object-cover object-center;
+        @media (min-width: 768px) {
+            .container-app {
+                max-width: 600px;
+            }
         }
 
-        .no-image-placeholder {
-            @apply w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500;
+        .pulse-animation {
+            animation: pulse 1.5s infinite;
         }
 
-        /* Button Styles */
-        .btn {
-            @apply inline-flex items-center justify-center px-4 py-2 border border-transparent 
-                   text-sm font-medium rounded-md shadow-sm focus:outline-none 
-                   focus:ring-2 focus:ring-offset-2 transition-colors duration-200;
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
         }
 
-        .btn-primary {
-            @apply text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500;
+        .my-indicator {
+            display: none;
         }
 
-        .btn-secondary {
-            @apply text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500;
+        .htmx-request .my-indicator {
+            display: inline;
         }
 
-        .btn-danger {
-            @apply text-white bg-red-600 hover:bg-red-700 focus:ring-red-500;
-        }
-
-        /* Icon Utilities */
-        .icon-sm {
-            @apply h-5 w-5;
-        }
-
-        .icon-xs {
-            @apply h-4 w-4;
-        }
-
-        /* Input Styles */
-        .form-input {
-            @apply block w-full px-3 py-2 border border-gray-300 rounded-md 
-                   shadow-sm placeholder-gray-500 focus:outline-none 
-                   focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+        .htmx-request.my-indicator {
+            display: inline;
         }
     </style>
 </head>
-<body class="pb-16 flex flex-col min-h-screen">
-    <header class="bg-white shadow-sm sticky top-0 z-10">
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-indigo-600 hover:text-indigo-800 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-                             stroke="currentColor" class="w-8 h-8 mr-2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                        </svg>
-                        Modern Shop
-                    </a>
-                </div>
-                <div class="flex items-center">
-                    <!-- Cart Icon -->
-                    <a href="/cart" 
-                       class="ml-4 flow-root lg:ml-6 relative p-2 text-gray-500 hover:text-indigo-600"
-                       hx-get="/cart/count"
-                       hx-trigger="load, cartUpdate from:body"
-                       hx-swap="innerHTML"
-                       hx-target="#cart-count-badge">
-                        <span class="sr-only">Shopping cart</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-                             stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c.121.001.241.015.358.043a1.875 1.875 0 0 1 1.597 1.904l-1.07 3.209a1.875 1.875 0 0 1-1.846 1.441H6.375a1.875 1.875 0 0 1-1.846-1.441L2.53 6.022A1.875 1.875 0 0 1 4.128 3.87H18a2.25 2.25 0 0 1 2.25 2.25v.625a2.25 2.25 0 0 1-2.25 2.25H7.5Zm-1.5-6.75h.008v.008H6v-.008Zm4.5 0h.008v.008H10.5v-.008Zm4.5 0h.008v.008H15v-.008Z" />
-                        </svg>
-                        <!-- Cart Count Badge -->
-                        <span id="cart-count-badge" class="absolute -top-1 -right-1">
-                            <span class="absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75 animate-ping"></span>
-                            <span class="relative inline-flex rounded-full h-5 w-5 bg-indigo-500 text-white text-xs items-center justify-center">
-                                {{ cart_item_count | default(0) }}
-                            </span>
-                        </span>
-                    </a>
-                </div>
+
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
+        <div class="container-app py-3 px-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-blue-600">IKMI MART</h1>
+            <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
+                <a href="#" hx-get="/cart" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true"
+                    class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-md transition-all duration-200 relative">
+                    <span class="mr-1.5">
+                        <img src="/static/cart_icon.svg" alt="Cart" class="w-5 h-5">
+                    </span>
+                        {%include "cart_count_badge.html" %}
+                </a>
             </div>
-        </nav>
+        </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
-        {% block content %}
-        <!-- Page specific content goes here -->
-        {% endblock %}
+
+    <main id="main-content" class="container-app pt-20 px-4 flex flex-col">
+        {% block main_content %}{% endblock %}
     </main>
 
-    <footer class="bg-gray-800 text-white text-center p-4 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p>&copy; 2024 Modern Shop. All rights reserved.</p>
-            <nav class="mt-2 space-x-4">
-                <a href="/about" class="text-gray-300 hover:text-white">About</a>
-                <a href="/contact" class="text-gray-300 hover:text-white">Contact</a>
-                <a href="/terms" class="text-gray-300 hover:text-white">Terms</a>
-            </nav>
-        </div>
+    <!-- Footer -->
+    <footer class="container-app mt-4 px-4">
+        <p class="text-center text-gray-500 text-xs">© 2025 IKMI MART</p>
     </footer>
 </body>
 </html>

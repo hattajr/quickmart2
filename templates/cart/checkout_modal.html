@@ -1,0 +1,60 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
+        <div class="flex justify-between items-center p-4 border-b bg-gray-50">
+            <h3 class="text-lg font-medium text-gray-900">Complete Your Order</h3>
+            <button class="text-gray-400 hover:text-gray-600 focus:outline-none"
+                onclick="this.closest('.fixed').remove()">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1">
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-500">Order Summary</span>
+                </div>
+                <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">Total Items</span>
+                    <span class="font-semibold">{{item_count}}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">Total Amount</span>
+                    <span class="font-semibold text-green-600">₩{{total_price}}</span>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                <h4 class="font-medium mb-3 text-gray-700">Payment Details</h4>
+                <div class="grid grid-cols-3 gap-1 text-sm">
+                    <span class="text-gray-500">Bank</span>
+                    <span class="col-span-2 font-medium">{{account_info.bank}}</span>
+
+                    <span class="text-gray-500">Account Name</span>
+                    <span class="col-span-2 font-medium">{{account_info.name}}</span>
+
+                    <span class="text-gray-500">Account No.</span>
+                    <span class="col-span-2 font-medium tracking-wide">{{account_info.account_number}}</span>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-600">
+                <p>If you have any trouble with your payment, please contact:</p>
+                <p class="mt-2 font-medium">{{account_info.name}} • {{account_info.phone}}</p>
+            </div>
+        </div>
+
+        <div class="p-4 border-t bg-gray-50 flex justify-between">
+            <button onclick="this.closest('.fixed').remove()"
+                class="px-4 py-2 text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300">
+                Cancel
+            </button>
+            <button hx-get="/cart/checkout/confirm" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700">
+                Complete Order
+            </button>
+        </div>
+    </div>
+</div>
