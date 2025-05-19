@@ -1,0 +1,97 @@
+{%extends "/shared/base.html"%}
+{%block main_content%}
+<header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
+    <div class="container-app py-3 px-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-blue-600">IKMI MART</h1>
+        <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
+            <a href="#"
+                class="flex pointer-events-none cursor-not-allowed items-center bg-indigo-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-md transition-all duration-200 relative">
+                <span class="mr-1.5">
+                    <img src="/static/cart_icon.svg" alt="Cart" class="w-5 h-5">
+                </span>
+                {%block cart_count_badge%}
+                <span id="cart-count-badge" hx-swap-oob="true"
+                    class="text-xs font-semibold bg-red-500 rounded-full px-1.5 py-0.5 absolute -top-2 -right-2">{%
+                    if
+                    total_items %}{{ total_items }}{% else %}0{% endif %}</span>
+                {% endblock %}
+            </a>
+        </div>
+    </div>
+</header>
+<div id="cart-details"> {# Target for updates #}
+    {% if not cart %}
+    <div class="bg-white shadow-md rounded-lg p-8 text-center max-w-md mx-auto my-6">
+        <div class="relative w-24 h-24 mx-auto mb-6 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor"
+                class="w-full h-full">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c.121.001.241.015.358.043a1.875 1.875 0 0 1 1.597 1.904l-1.07 3.209a1.875 1.875 0 0 1-1.846 1.441H6.375a1.875 1.875 0 0 1-1.846-1.441L2.53 6.022A1.875 1.875 0 0 1 4.128 3.87H18a2.25 2.25 0 0 1 2.25 2.25v.625a2.25 2.25 0 0 1-2.25 2.25H7.5Zm-1.5-6.75h.008v.008H6v-.008Zm4.5 0h.008v.008H10.5v-.008Zm4.5 0h.008v.008H15v-.008Z" />
+            </svg>
+        </div>
+        <p class="text-xl font-medium text-gray-700 mb-3">Your cart is empty</p>
+        <p class="text-gray-500 mb-6">Looks like you haven't added any items to your cart yet.</p>
+        <a href="/" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150 ease-in-out">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Continue Shopping
+        </a>
+    </div>
+    {% else %}
+    <!-- Cart container with max height and scrolling -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <!-- List with fixed height and scrolling - pb-40 creates space for the order summary -->
+        <ul role="list" class="divide-y divide-gray-200 overflow-y-auto max-h-[calc(100vh-13rem)] pb-40">
+            {% for product in cart %}
+            {%include "cart/partials/item.html" %}
+            {% endfor %}
+        </ul>
+
+        <!-- Order summary (fixed bottom) -->
+        <div class="fixed inset-x-0 bottom-0 z-10 border-t border-gray-200 bg-white p-5 shadow-lg rounded-t-2xl">
+            <div class="max-w-lg mx-auto">
+                <!-- Navigation buttons -->
+                <div class="flex justify-between items-center mb-4">
+                    <a href="#" hx-get="/search?q={{last_query}}" hx-target="body" hx-push-url="true"
+                    class="flex items-center text-gray-600 hover:text-gray-800 font-medium transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Continue Shopping
+                    </a>
+                    <button hx-post="/cart/clear" hx-target="#cart-details"
+                        class="text-red-500 hover:text-red-700 font-medium flex items-center transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Clear Cart
+                    </button>
+                </div>
+
+                <!-- Price summary and checkout -->
+                <div class="flex justify-between items-center py-2 border-t border-gray-100">
+                    {% include "cart/partials/summary.html" %}
+
+                    <!-- Checkout button -->
+                    <a href="#" hx-get="/cart/checkout" hx-target="body" hx-swap="beforeend" 
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-8 rounded-xl font-medium flex items-center gap-2 shadow-sm transition duration-150 ease-in-out">
+                        Checkout
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
