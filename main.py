@@ -424,13 +424,31 @@ async def update_database(request: Request, response:Response):
 
 @app.post("/upload", response_class=HTMLResponse)
 async def upload_image(request: Request, response:Response, file: UploadFile = File(...), db:Session=Depends(get_local_db)):
+    if not request.headers.get('HX-Request'):
+        response = templates.TemplateResponse(request=request, name="index.html")
+        return response
+
+    session_id, response = get_or_create_session(request=request, response=response)
+    url = request.headers.get('HX-Current-URL').split('/')[-1]
+    if url == "cart":
+        logger.debug(session_data[session_id])
+        products_search = search_product_by_keyword(q, db)
+        products = get_cart(session_id, db=db)
+        context = dict(
+            products=products_search.to_dicts(),
+            total_price=products["total_price"].sum(),
+            total_items=products["qty"].sum(),
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html",
+            context=context
+        )
+
     image_id = str(uuid.uuid4())
     file_path = f"/home/hattajr/lab/ikmimart/.trash/test_images/{image_id}.jpg"
 
     file_paths = [
-        # "/home/hattajr/lab/ikmimart/.trash/belinis2.jpg"
-        # "/home/hattajr/lab/ikmimart/.trash/many.jpg",
-        # "/home/hattajr/lab/ikmimart/.trash/many1.jpg",
         "/home/hattajr/lab/ikmimart/.trash/many2.jpg",
     ]
     file_path = file_paths[uuid.uuid4().int % len(file_paths)]
@@ -466,6 +484,7 @@ async def upload_image(request: Request, response:Response, file: UploadFile = F
         found = False
         for keyword in keywords:
             df = search_product_by_keyword(keyword, db=db)
+            session_data[session_id]["search_history"].append(keyword)
             logger.debug(df)
             if not df.is_empty():
                 dfs_queried.append(df)
@@ -474,21 +493,31 @@ async def upload_image(request: Request, response:Response, file: UploadFile = F
         if found:
             continue
 
+    logger.debug(session_data[session_id]["search_history"])
+    logger.debug(f"{session_id}: {session_data[session_id]}")
+
     # IF NOT FOUND, SPLIT ALL THE KEYWORD FOR EACH WORD AND START SEAARCH AGAIN
 
     df_result = pl.concat(dfs_queried, how="vertical_relaxed")
+    products = df_result.to_dicts()
+    logger.debug(df_result)
     # df_result = pl.DataFrame()
     # if df_result.is_empty():
     #     new_path = f"/home/hattajr/lab/ikmimart/.trash/test_images/{image_id}__not_found.jpg"
     #     os.rename(file_path, new_path)
-
-    logger.debug(df_result)
-    products = df_result.to_dicts()
-    context = {
-            "request": request,
-            "products": products,
-        }
-    return templates.TemplateResponse(
-        "result_fragment.html",
-        context=context
+    context = {"request": request, "products": products}
+    response =  templates.TemplateResponse(
+        "index.html",
+        context=context,
+        block_names=["result_list"]
     )
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=session_id,
+        max_age=SESSION_EXPIRY_MINUTES * 60, 
+        httponly=True, 
+        secure=False,    
+        samesite="lax"
+    )
+    return response
+
