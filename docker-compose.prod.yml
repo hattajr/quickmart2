@@ -1,0 +1,27 @@
+# docker-compose.prod.yml (Production overrides)
+version: '3.8'
+services:
+  migrate:
+    container_name: ikmimart_prod_migrate
+    env_file:
+      - .env.prod
+  app:
+    container_name: ikmimart_app_prod
+    env_file:
+      - .env.prod
+    ports:
+      - "${APP_PORT}:8003"
+    command: uvicorn main:app --host 0.0.0.0 --port 8003
+  
+  db:
+    container_name: ikmimart_postgres_prod
+    env_file:
+      - .env.prod
+    volumes:
+      - /mnt/hdd/disk1/ikmimart/postgres_data/_data:/var/lib/postgresql/data
+    ports:
+      - "${RDB_PORT}:5432"
+  
+  redis:
+    container_name: ikmimart_redis_prod
+    # Redis config remains the same as base

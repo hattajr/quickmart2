@@ -1,0 +1,48 @@
+# docker-compose.yml (Base configuration)
+version: '3.8'
+services:
+  migrate:
+    build: .
+    command: python /app/migrations/migrate.py
+    volumes:
+      - ./migrations:/app/migrations
+    depends_on:
+      - db
+    networks:
+      - ikmimart_network  # Ensure it's on the same network if DB is isolated
+
+  app:
+    build: .
+    # No container_name here - will be defined in env-specific files
+    depends_on:
+      - db
+      - redis
+    networks:
+      - ikmimart_network
+  
+  db:
+    image: postgres:17.4
+    # No container_name here - will be defined in env-specific files
+    environment:
+      - POSTGRES_USER=${RDB_USER}
+      - POSTGRES_PASSWORD=${RDB_PASSWORD}
+      - POSTGRES_DB=${RDB_DATABASE}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ikmimart_network
+  
+  redis:
+    image: redis:7.4
+    # No container_name here - will be defined in env-specific files
+    command: ["redis-server", "--maxmemory", "3gb", "--maxmemory-policy", "allkeys-lru"]
+    networks:
+      - ikmimart_network
+
+networks:
+  ikmimart_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

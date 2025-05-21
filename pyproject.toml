@@ -21,7 +21,9 @@ dependencies = [
     "connectorx",
     "jinja2-fragments>=1.8.0",
     "itsdangerous",
-    "DeepImageSearch",
     "ipykernel",
-    "aiocache"
+    "aiocache",
+    "pillow",
+    "pandas",
+    "sqlalchemy"
 ]
