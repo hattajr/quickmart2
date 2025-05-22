@@ -242,6 +242,20 @@ def search(request: Request, response:Response, q:str = Query(...), db:Session=D
     )
     return response
 
+@app.get("/show-camera", response_class=HTMLResponse)
+async def show_camera(request: Request, response: Response):
+    if not request.headers.get('HX-Request'):
+        response = templates.TemplateResponse(request=request, name="index.html")
+        return response
+    response = templates.TemplateResponse(
+        request=request,
+        name="camera_modal.html",
+        context={"request": request}
+    )
+    return response
+
+
+
 @app.get("/cart", response_class=HTMLResponse)
 async def view_cart(request: Request, response: Response, db:Session=Depends(get_local_db)):
     session_id = request.cookies.get(SESSION_COOKIE_NAME)

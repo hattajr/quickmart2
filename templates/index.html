@@ -22,54 +22,25 @@
     </div>
 </header>
 <div class="flex flex-col h-full">
-    <!-- Camera Section - Square -->
-    <!-- <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">
-        <div class="p-3">
-            <div class="flex justify-between items-center mb-2">
-                <h2 class="text-lg font-semibold text-gray-700">Image Search</h2>
-                <form id="upload-form" hx-post="/upload" hx-target="#result-container" hx-swap="innerHTML"
-                    hx-encoding="multipart/form-data" hx-indicator="#loading-indicator">
-                    <input type="file" name="file" id="file-input" class="hidden">
-
-                    <div id="button-container">
-                        <button type="button" onclick="takePhoto()"
-                            class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Take
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="w-full relative">
-                <div style="padding-top: 100%; position: relative;">
-                    <video id="video" autoplay playsinline
-                        class="absolute top-0 left-0 w-full h-full object-cover rounded-lg bg-gray-900"></video>
-                    <div
-                        class="absolute top-0 left-0 right-0 bottom-0 border-2 border-dashed border-white/40 m-3 rounded pointer-events-none">
-                    </div>
-
-                    <canvas id="canvas" class="hidden"></canvas>
-
-                </div>
-            </div>
-        </div>
-    </section>  -->
-
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">
         <div class="p-3">
-            <div hx-get="/search" hx-target="#result-container" hx-swap="outerHTML" hx-trigger="input delay:500ms"
-                hx-include="#search-input" hx-push-url="true" hx-params="*">
-                <input type="text" name="q" id="search-input"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
-                    placeholder="Search for products..." value="{%if last_query %}{{ last_query }}{% endif %}"
-                    hx-indicator="#loading-indicator">
+            <div class="flex items-center space-x-2">
+                <div class="relative flex-grow" hx-trigger="input delay:500ms" hx-include="#search-input" hx-push-url="true" hx-params="*"
+                    hx-get="/search" hx-target="#result-container" hx-swap="outerHTML" hx-indicator="#loading-indicator">
+                    <input type="text" name="q" id="search-input"
+                        class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+                        placeholder="Search for products..." value="{%if last_query %}{{ last_query }}{% endif %}"
+                        >
+                </div>
+                <div role="button" class="disabled opacity-50 cursor-not-allowed"
+                    class="p-2 rounded-lg hover:bg-gray-100 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 hover:text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
             </div>
         </div>
     </section>
