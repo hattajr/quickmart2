@@ -34,12 +34,13 @@ logger.add(sys.stderr, level="DEBUG")
 
 app = FastAPI()
 
-PRODUCT_IMAGE_URL = os.getenv("PRODUCT_IMAGE_URL")
+PRODUCT_IMAGE_URL = "/static/images"
 IMAGE_FORMAT = "png"
 SESSION_COOKIE_NAME = "ikmimart_session_id"
 SESSION_EXPIRY_MINUTES = 30
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 templates = Jinja2Blocks(directory="templates")
 
 session_data = {}
@@ -171,16 +172,16 @@ def query_products(query:str, db:Session) -> pl.DataFrame:
     return pl.DataFrame()
 
 def search_product_by_keyword(keyword: str, db:Session) -> pl.DataFrame:    
-    q = f"SELECT id, barcode, name, price, unit FROM products_new WHERE name LIKE '%{keyword}%'"
+    q = f"SELECT id, barcode, name, price, unit FROM products WHERE name ILIKE '%{keyword}%'"
     return query_products(q, db)
 
 def search_product_by_id(id: int | list[int], db:Session) -> pl.DataFrame:
     if isinstance(id, list):
         id = ",".join([str(i) for i in id])
-        query = f"SELECT * FROM products_new WHERE id IN ({id})"
+        query = f"SELECT * FROM products WHERE id IN ({id})"
     else:
         id = str(id)
-        query = f"SELECT * FROM products_new WHERE id = {id}"
+        query = f"SELECT * FROM products WHERE id = {id}"
     return query_products(query, db)
 
 
@@ -405,21 +406,21 @@ async def checkout_confirm(request: Request, response: Response):
     return redirect
 
 
-@app.get("/update-database", response_class=HTMLResponse)
-async def update_database(request: Request, response:Response):
-    sqlite_DB = LOCAL_DATABASE_URL
-    q = f"SELECT * FROM products_new"
-    df = pl.read_database_uri(query=q, uri=MASTER_DATABASE_URL)
-    df.write_database(
-        table_name="products_new",
-        connection=sqlite_DB,
-        if_table_exists="replace",
-        engine="sqlalchemy"
-    )
-    context = {
-        "request": request,
-    }
-    return templates.TemplateResponse("index.html", context=context, block_name="update_database")
+# @app.get("/update-database", response_class=HTMLResponse)
+# async def update_database(request: Request, response:Response):
+#     sqlite_DB = LOCAL_DATABASE_URL
+#     q = f"SELECT * FROM products_new"
+#     df = pl.read_database_uri(query=q, uri=MASTER_DATABASE_URL)
+#     df.write_database(
+#         table_name="products_new",
+#         connection=sqlite_DB,
+#         if_table_exists="replace",
+#         engine="sqlalchemy"
+#     )
+#     context = {
+#         "request": request,
+#     }
+#     return templates.TemplateResponse("index.html", context=context, block_name="update_database")
 
 
 @app.post("/upload", response_class=HTMLResponse)

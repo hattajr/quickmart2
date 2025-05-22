@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import psycopg2
 from urllib.parse import urlparse
+from loguru import logger
 
 
 load_dotenv()
@@ -21,14 +22,25 @@ MASTERDB_NAME = os.getenv("MASTERDB_NAME")
 SEARCH_HISTORY_TABLE = "search_history"
 
 
+
+RDB_USER = os.getenv("RDB_USER")
+RDB_PASSWORD = os.getenv("RDB_PASSWORD")
+RDB_HOST = os.getenv("RDB_HOST")
+RDB_HOST_DOCKER = os.getenv("RDB_HOST_DOCKER")
+RDB_PORT = os.getenv("RDB_PORT")
+RDB_DATABASE = os.getenv("RDB_DATABASE")
+
+
+
 MASTER_DATABASE_URL = f"postgresql://{MASTERDB_USER}:{MASTERDB_PASSWORD}@{MASTERDB_HOST}:{MASTERDB_PORT}/{MASTERDB_NAME}"
 # LOCAL_DATABASE_URL = f"sqlite:///{DB_PATH}"
-LOCAL_DATABASE_URL = "sqlite:///data.db"
+# LOCAL_DATABASE_URL = "sqlite:///data.db"
+LOCAL_DATABASE_URL = f"postgresql://{RDB_USER}:{RDB_PASSWORD}@{RDB_HOST}:{RDB_PORT}/{RDB_DATABASE}"
 
 engine_master_db = create_engine(MASTER_DATABASE_URL)
 SessionLocal_master_db = sessionmaker(autocommit=False, autoflush=False, bind=engine_master_db)
 
-engine_local_db = create_engine(LOCAL_DATABASE_URL, connect_args={"check_same_thread": False})
+engine_local_db = create_engine(LOCAL_DATABASE_URL)
 SessionLocal_local_db = sessionmaker(autocommit=False, autoflush=False, bind=engine_local_db)
 
 def get_local_master():

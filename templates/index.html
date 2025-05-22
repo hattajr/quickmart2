@@ -3,7 +3,7 @@
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
         {%block update_database%}
-        <h1 role="button" hx-get="/update-database" class="text-xl font-bold text-blue-600 hover:text-blue-800">IKMI MART</h1>
+        <h1 role="button" hx-get="/update-database" class="text-xl font-bold text-indigo-600 hover:text-indigo-800">IKMI MART</h1>
         {% endblock %}
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
             <a href="#" hx-get="/cart" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
@@ -23,7 +23,7 @@
 </header>
 <div class="flex flex-col h-full">
     <!-- Camera Section - Square -->
-    <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">
+    <!-- <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">
         <div class="p-3">
             <div class="flex justify-between items-center mb-2">
                 <h2 class="text-lg font-semibold text-gray-700">Image Search</h2>
@@ -60,7 +60,7 @@
                 </div>
             </div>
         </div>
-    </section> 
+    </section>  -->
 
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">
         <div class="p-3">
@@ -107,7 +107,7 @@
                                         </p>
                                         <button hx-post="/cart/add?product_id={{ product.id }}"
                                             hx-target="#cart-count-badge" hx-swap="outerHTML" hx-trigger="click"
-                                            class="bg-indigo-600 text-white text-xs px-2 py-1 rounded hover:bg-blue-700 flex items-center"
+                                            class="bg-indigo-600 text-white text-xs px-2 py-1 rounded hover:bg-indigo-800 flex items-center"
                                             title="Add to Cart">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 mr-1">
