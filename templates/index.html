@@ -55,11 +55,6 @@
                 <!-- Container to load camera UI with HTMX -->
                 <div id="camera-container"></div>
 
-                <!-- Form to upload photo -->
-                <!-- <form id="upload-form" hx-post="/upload" hx-target="#response" method="post" -->
-                    <!-- enctype="multipart/form-data"> -->
-                    <!-- <input type="file" id="file-input" name="photo" style="display:none;" /> -->
-                <!-- </form> -->
             </div>
         </div>
     </section>
@@ -77,8 +72,12 @@
                 <div id="result-list">
                     <div>
                         {% if not products%}
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600">No product found (╥﹏╥)</p>
+                        <div class="text-center p-6 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+                            <div class="space-y-3">
+                                <p class="text-gray-700 text-lg font-medium">(╥﹏╥) No products found</p>
+                                <p class="text-gray-500 text-sm">Please try searching again with different keywords or take a clearer photo.</p>
+                                <div class="w-16 h-1 bg-indigo-100 mx-auto rounded-full"></div>
+                            </div>
                         </div>
                         {% endif %}
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -114,8 +113,11 @@
                     </div>
                 </div>
                 {% else %}
-                <div class="flex justify-center items-center h-full text-gray-400">
-                    <p>Welcome to IKMI MART ヾ(＾∇＾) </p>
+                <div class="flex flex-col justify-center items-center h-full p-8 text-center space-y-4">
+                    <h2 class="text-2xl font-bold text-indigo-600">Welcome to IKMI MART ヾ(＾∇＾)</h2>
+                    <div class="max-w-md">
+                        <p class="text-gray-600 mb-2">Enter keywords in the search box or use the camera to search for products.</p>
+                    </div>
                 </div>
                 {% endif %}
             </div>
