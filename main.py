@@ -1,31 +1,24 @@
+import datetime
 import sys
 import uuid
-import os
-
-import polars as pl
-from fastapi import FastAPI, File, Request, UploadFile, Query, Form, Depends, Response, Cookie
-from fastapi.responses import RedirectResponse
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from loguru import logger
-from typing import Any
-import shutil
-from dotenv import load_dotenv
-from aiocache import SimpleMemoryCache
-from uuid import uuid4
-import asyncio
-from jinja2_fragments.fastapi import Jinja2Blocks
-import datetime
 from collections import deque
-from db.database import MASTER_DATABASE_URL, LOCAL_DATABASE_URL
+from typing import Any
 
-    
+import shutil
+from tempfile import NamedTemporaryFile
+import polars as pl
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, File, Query, Request, Response, UploadFile
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from jinja2_fragments.fastapi import Jinja2Blocks
+from loguru import logger
+from sqlalchemy.orm import Session
+from fastapi.middleware.gzip import GZipMiddleware
 
 
 from db.database import get_local_db
 from inference import get_prediction_result
-from sqlalchemy.orm import Session
 
 load_dotenv()
 
@@ -33,6 +26,7 @@ logger.remove()
 logger.add(sys.stderr, level="DEBUG")
 
 app = FastAPI()
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 PRODUCT_IMAGE_URL = "/static/images"
 IMAGE_FORMAT = "png"
@@ -45,15 +39,19 @@ templates = Jinja2Blocks(directory="templates")
 
 session_data = {}
 
+
 def get_now() -> datetime.datetime:
     return datetime.datetime.now(datetime.UTC)
+
 
 def generate_session_id() -> str:
     return str(uuid.uuid4())
 
-def get_session_id(request: Request) -> str|None:
+
+def get_session_id(request: Request) -> str | None:
     """Get session ID from cookie"""
     return request.cookies.get(SESSION_COOKIE_NAME)
+
 
 def create_session_id(response: Response) -> tuple[str, Response]:
     session_id = generate_session_id()
@@ -63,10 +61,10 @@ def create_session_id(response: Response) -> tuple[str, Response]:
         value=session_id,
         max_age=SESSION_EXPIRY_MINUTES * 60,  # 30 minutes in seconds
         httponly=True,  # Set to True if you don't need JS access
-        secure=False,     # Set to False for development (HTTP)
-        samesite="lax"
+        secure=False,  # Set to False for development (HTTP)
+        samesite="lax",
     )
-    
+
     # Initialize empty session data in Redis
     session_data[session_id] = {
         "created_at": get_now(),
@@ -79,7 +77,7 @@ def create_session_id(response: Response) -> tuple[str, Response]:
 def get_or_create_session(request: Request, response: Response) -> tuple[str, Response]:
     """Get existing session or create new one"""
     session_id = get_session_id(request)
-    
+
     logger.debug(session_id)
     logger.debug(session_data.keys())
     if session_id and session_id in session_data:
@@ -90,12 +88,13 @@ def get_or_create_session(request: Request, response: Response) -> tuple[str, Re
             value=session_id,
             max_age=SESSION_EXPIRY_MINUTES * 60,  # 30 minutes in seconds
             httponly=True,  # Set to True if you don't need JS access
-            secure=False,     # Set to False for development (HTTP)
-            samesite="lax"
+            secure=False,  # Set to False for development (HTTP)
+            samesite="lax",
         )
-        return session_id, response 
+        return session_id, response
     logger.info("Create NEW SESSION")
     return create_session_id(response)
+
 
 def get_session_data(session_id: str) -> dict[str, Any]:
     """Get session data from Redis"""
@@ -108,7 +107,8 @@ def get_session_data(session_id: str) -> dict[str, Any]:
 async def get_session(request: Request, response: Response) -> str:
     return get_or_create_session(request, response)
 
-def get_cart(session_id:str, db:Session) -> pl.DataFrame:
+
+def get_cart(session_id: str, db: Session) -> pl.DataFrame:
     session_data = get_session_data(session_id)
     cart = session_data.get("cart")
     logger.debug(cart)
@@ -117,12 +117,12 @@ def get_cart(session_id:str, db:Session) -> pl.DataFrame:
     for product_id, product in cart.items():
         cart_.append(
             dict(
-                id = product_id,
-                qty = product["qty"],
-                updated_at = product["updated_at"],
+                id=product_id,
+                qty=product["qty"],
+                updated_at=product["updated_at"],
             )
         )
-    
+
     df_cart = pl.DataFrame(cart_)
     df_product = search_product_by_id(list(cart.keys()), db=db)
     logger.debug(df_product)
@@ -130,52 +130,48 @@ def get_cart(session_id:str, db:Session) -> pl.DataFrame:
         return pl.DataFrame()
 
     df_result = (
-        df_cart
-        .join(
+        df_cart.join(
             df_product,
             left_on="id",
             right_on="id",
         )
-        .with_columns(
-            total_price = pl.col("qty") * pl.col("price")
-        )
+        .with_columns(total_price=pl.col("qty") * pl.col("price"))
         .sort("updated_at", descending=True)
     )
     return df_result
 
 
-
-def query_products(query:str, db:Session) -> pl.DataFrame:
+def query_products(query: str, db: Session) -> pl.DataFrame:
     df = pl.read_database(query=query, connection=db)
     logger.debug(df)
     if not df.is_empty():
-        df = (
-            df
-            .with_columns(
-                image_url = pl.when(pl.col("barcode").is_not_null())
-                .then(pl.concat_str([
-                    pl.lit(PRODUCT_IMAGE_URL),
-                    pl.col("barcode")
-                ], separator="/"))
-                .otherwise(None)
+        df = df.with_columns(
+            image_url=pl.when(pl.col("barcode").is_not_null())
+            .then(
+                pl.concat_str(
+                    [pl.lit(PRODUCT_IMAGE_URL), pl.col("barcode")], separator="/"
+                )
             )
-            .with_columns(
-                image_url = pl.when(pl.col("image_url").is_not_null())
-                .then(pl.concat_str([
-                    pl.col("image_url"),
-                    pl.lit(IMAGE_FORMAT)
-                ], separator="."))
-                .otherwise(None)
+            .otherwise(None)
+        ).with_columns(
+            image_url=pl.when(pl.col("image_url").is_not_null())
+            .then(
+                pl.concat_str(
+                    [pl.col("image_url"), pl.lit(IMAGE_FORMAT)], separator="."
+                )
             )
+            .otherwise(None)
         )
         return df
     return pl.DataFrame()
 
-def search_product_by_keyword(keyword: str, db:Session) -> pl.DataFrame:    
-    q = f"SELECT id, barcode, name, price, unit FROM products WHERE name ILIKE '%{keyword}%'"
+
+def search_product_by_keyword(keyword: str, db: Session) -> pl.DataFrame:
+    q = f"SELECT id, barcode, name, price, unit FROM products WHERE name ILIKE '%{keyword}%' OR keyword ILIKE '%{keyword}%'"
     return query_products(q, db)
 
-def search_product_by_id(id: int | list[int], db:Session) -> pl.DataFrame:
+
+def search_product_by_id(id: int | list[int], db: Session) -> pl.DataFrame:
     if isinstance(id, list):
         id = ",".join([str(i) for i in id])
         query = f"SELECT * FROM products WHERE id IN ({id})"
@@ -186,25 +182,33 @@ def search_product_by_id(id: int | list[int], db:Session) -> pl.DataFrame:
 
 
 @app.get("/", response_class=HTMLResponse)
-def root(request: Request, response:Response, db:Session=Depends(get_local_db)):
-    if not request.headers.get('HX-Request'):
+def root(request: Request, response: Response, db: Session = Depends(get_local_db)):
+    if not request.headers.get("HX-Request"):
         response = templates.TemplateResponse(request=request, name="index.html")
         response.delete_cookie(SESSION_COOKIE_NAME)
         return response
 
     context = {"request": request}
-    response =  templates.TemplateResponse(request=request, name="index.html", context=context)
+    response = templates.TemplateResponse(
+        request=request, name="index.html", context=context
+    )
     response.delete_cookie(SESSION_COOKIE_NAME)
     return response
 
+
 @app.get("/search", response_class=HTMLResponse)
-def search(request: Request, response:Response, q:str = Query(...), db:Session=Depends(get_local_db)):
-    if not request.headers.get('HX-Request'):
+def search(
+    request: Request,
+    response: Response,
+    q: str = Query(...),
+    db: Session = Depends(get_local_db),
+):
+    if not request.headers.get("HX-Request"):
         response = templates.TemplateResponse(request=request, name="index.html")
         return response
 
     session_id, response = get_or_create_session(request=request, response=response)
-    url = request.headers.get('HX-Current-URL').split('/')[-1]
+    url = request.headers.get("HX-Current-URL").split("/")[-1]
     if url == "cart":
         logger.debug(session_data[session_id])
         products_search = search_product_by_keyword(q, db)
@@ -215,9 +219,7 @@ def search(request: Request, response:Response, q:str = Query(...), db:Session=D
             total_items=products["qty"].sum(),
         )
         return templates.TemplateResponse(
-            request=request,
-            name="index.html",
-            context=context
+            request=request, name="index.html", context=context
         )
 
     keyword = q
@@ -227,62 +229,63 @@ def search(request: Request, response:Response, q:str = Query(...), db:Session=D
     logger.debug(f"{session_id}: {session_data[session_id]}")
 
     context = {"request": request, "products": products.to_dicts()}
-    response =  templates.TemplateResponse(
-        "index.html",
-        context=context,
-        block_names=["result_list"]
+    response = templates.TemplateResponse(
+        "index.html", context=context, block_names=["result_list"]
     )
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=session_id,
-        max_age=SESSION_EXPIRY_MINUTES * 60, 
-        httponly=True, 
-        secure=False,    
-        samesite="lax"
+        max_age=SESSION_EXPIRY_MINUTES * 60,
+        httponly=True,
+        secure=False,
+        samesite="lax",
     )
     return response
+
 
 @app.get("/show-camera", response_class=HTMLResponse)
 async def show_camera(request: Request, response: Response):
-    if not request.headers.get('HX-Request'):
+    logger.debug("Show camera")
+    if not request.headers.get("HX-Request"):
         response = templates.TemplateResponse(request=request, name="index.html")
         return response
     response = templates.TemplateResponse(
-        request=request,
-        name="camera_modal.html",
-        context={"request": request}
+        request=request, name="camera_modal.html", context={"request": request}
     )
     return response
 
 
-
 @app.get("/cart", response_class=HTMLResponse)
-async def view_cart(request: Request, response: Response, db:Session=Depends(get_local_db)):
+async def view_cart(
+    request: Request, response: Response, db: Session = Depends(get_local_db)
+):
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
     df_cart = get_cart(session_id, db=db)
     logger.debug(df_cart)
 
     context = dict(
         cart=df_cart.to_dicts(),
-        total_price=f"{df_cart["total_price"].sum():,.0f}",
+        total_price=f"{df_cart['total_price'].sum():,.0f}",
         total_items=df_cart["qty"].sum(),
-        last_query=session_data[session_id]["search_history"][-1]
+        last_query=session_data[session_id]["search_history"][-1],
     )
     return templates.TemplateResponse(
-        request=request,
-        name="cart.html",
-        context=context
+        request=request, name="cart.html", context=context
     )
-
 
 
 @app.post("/cart/add", response_class=HTMLResponse)
-async def add_to_cart(request: Request, response: Response,  product_id: int=Query(...), db:Session=Depends(get_local_db)):
+async def add_to_cart(
+    request: Request,
+    response: Response,
+    product_id: int = Query(...),
+    db: Session = Depends(get_local_db),
+):
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
     if product_id not in session_data[session_id]["cart"]:
         session_data[session_id]["cart"][product_id] = {
             "qty": 0,
-            "updated_at": get_now()
+            "updated_at": get_now(),
         }
     session_data[session_id]["cart"][product_id]["qty"] += 1
     session_data[session_id]["cart"][product_id]["updated_at"] = get_now()
@@ -290,53 +293,60 @@ async def add_to_cart(request: Request, response: Response,  product_id: int=Que
     df_cart = get_cart(session_id, db=db)
     logger.debug(df_cart)
 
-    url = request.headers.get('HX-Current-URL').split('/')[-1]
+    url = request.headers.get("HX-Current-URL").split("/")[-1]
     logger.debug(url)
     if url == "cart":
         df_product = df_cart.filter(pl.col("id") == product_id)
         context = dict(
             product=df_product.to_dicts()[0] if not df_product.is_empty() else None,
-            total_price=f"{df_cart["total_price"].sum():,.0f}",
+            total_price=f"{df_cart['total_price'].sum():,.0f}",
             total_items=df_cart["qty"].sum(),
         )
         return templates.TemplateResponse(
-            request=request,
-            name="cart/partials/item.html",
-            context=context
+            request=request, name="cart/partials/item.html", context=context
         )
 
-    context={
+    context = {
         "session_id": session_id,
         "total_items": df_cart["qty"].sum(),
     }
     logger.debug(context)
-    response =  templates.TemplateResponse(
-        request = request,
+    response = templates.TemplateResponse(
+        request=request,
         name="index.html",
         context=context,
-        block_name="cart_count_badge"
+        block_name="cart_count_badge",
     )
     # _, response = get_or_create_session(request, response)
     logger.debug(session_data[session_id])
     return response
 
+
 @app.post("/cart/item/{product_id}", response_class=HTMLResponse)
-async def cart_item_change_count(request: Request, response:Response, product_id: int, action: str = Query(...), db:Session=Depends(get_local_db)):
+async def cart_item_change_count(
+    request: Request,
+    response: Response,
+    product_id: int,
+    action: str = Query(...),
+    db: Session = Depends(get_local_db),
+):
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
+
     def _updated_data():
         logger.info("Get data from cart")
         df_cart = get_cart(session_id, db=db)
         df_product = df_cart.filter(pl.col("id") == product_id)
-        context={
+        context = {
             "product": df_product.to_dicts()[0] if not df_product.is_empty() else None,
-            "total_price": f"{df_cart["total_price"].sum():,.0f}",
-            "total_items": df_cart["qty"].sum()
+            "total_price": f"{df_cart['total_price'].sum():,.0f}",
+            "total_items": df_cart["qty"].sum(),
         }
         return templates.TemplateResponse(
-            request = request,
+            request=request,
             name="cart/partials/item_count_change.html",
             context=context,
         )
+
     cart = session_data[session_id]["cart"]
     if action == "increase":
         cart[product_id]["qty"] += 1
@@ -354,14 +364,16 @@ async def cart_item_change_count(request: Request, response:Response, product_id
         logger.debug(df_cart)
         context = dict(
             cart=df_cart.to_dicts(),
-            total_price=f"{df_cart["total_price"].sum():,.0f}" if not df_cart.is_empty() else 0,
+            total_price=f"{df_cart['total_price'].sum():,.0f}"
+            if not df_cart.is_empty()
+            else 0,
             total_items=df_cart["qty"].sum() if not df_cart.is_empty() else 0,
         )
         return templates.TemplateResponse(
             request=request,
             name="cart.html",
             context=context,
-            block_name="main_content"
+            block_name="main_content",
         )
 
     else:
@@ -369,20 +381,23 @@ async def cart_item_change_count(request: Request, response:Response, product_id
 
 
 @app.post("/cart/clear", response_class=HTMLResponse)
-async def clear_cart(request: Request, response:Response):
+async def clear_cart(request: Request, response: Response):
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
     cart = session_data[session_id]["cart"]
     if cart:
         del session_data[session_id]["cart"]
     response = templates.TemplateResponse(
-        request = request,
+        request=request,
         name="cart/partials/cart.html",
     )
     response.delete_cookie(SESSION_COOKIE_NAME)
     return response
 
+
 @app.get("/cart/checkout", response_class=HTMLResponse)
-async def checkout(request: Request, response:Response, db:Session=Depends(get_local_db)):
+async def checkout(
+    request: Request, response: Response, db: Session = Depends(get_local_db)
+):
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
     df_cart = get_cart(session_id, db=db)
     item_count = df_cart["qty"].sum()
@@ -401,23 +416,26 @@ async def checkout(request: Request, response:Response, db:Session=Depends(get_l
     }
 
     return templates.TemplateResponse(
-        request=request,
-        name="cart/checkout_modal.html",
-        context=context
+        request=request, name="cart/checkout_modal.html", context=context
     )
+
+
 @app.get("/cart/checkout/confirm", response_class=HTMLResponse)
 async def checkout_confirm(request: Request, response: Response):
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
     if session_id and session_id in session_data:
         del session_data[session_id]
     # Create a response with cache-control headers to prevent back navigation
-    redirect = RedirectResponse(url="/", status_code=303)
+    # redirect = RedirectResponse(url="/", status_code=303)
+    response = templates.TemplateResponse(request=request, name="index.html")
     # Add headers to prevent caching
-    redirect.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
-    redirect.headers["Pragma"] = "no-cache"
-    redirect.headers["Expires"] = "0"
-    redirect.delete_cookie(SESSION_COOKIE_NAME)
-    return redirect
+    response.headers["Cache-Control"] = (
+        "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
+    )
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    response.delete_cookie(SESSION_COOKIE_NAME)
+    return response
 
 
 # @app.get("/update-database", response_class=HTMLResponse)
@@ -438,15 +456,22 @@ async def checkout_confirm(request: Request, response: Response):
 
 
 @app.post("/upload", response_class=HTMLResponse)
-async def upload_image(request: Request, response:Response, file: UploadFile = File(...), db:Session=Depends(get_local_db)):
-    if not request.headers.get('HX-Request'):
+async def upload_image(
+    request: Request,
+    response: Response,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_local_db),
+):
+    if not request.headers.get("HX-Request"):
         response = templates.TemplateResponse(request=request, name="index.html")
         return response
 
     session_id, response = get_or_create_session(request=request, response=response)
-    url = request.headers.get('HX-Current-URL').split('/')[-1]
+    url = request.headers.get("HX-Current-URL").split("/")[-1]
     if url == "cart":
         logger.debug(session_data[session_id])
+        # TODO: change this
+        q = "aya"
         products_search = search_product_by_keyword(q, db)
         products = get_cart(session_id, db=db)
         context = dict(
@@ -455,42 +480,31 @@ async def upload_image(request: Request, response:Response, file: UploadFile = F
             total_items=products["qty"].sum(),
         )
         return templates.TemplateResponse(
-            request=request,
-            name="index.html",
-            context=context
+            request=request, name="index.html", context=context
         )
 
-    image_id = str(uuid.uuid4())
-    file_path = f"/home/hattajr/lab/ikmimart/.trash/test_images/{image_id}.jpg"
+    # image_id = str(uuid.uuid4())
+    # file_path = f"./{image_id}.jpg"
 
-    file_paths = [
-        "/home/hattajr/lab/ikmimart/.trash/many2.jpg",
-    ]
-    file_path = file_paths[uuid.uuid4().int % len(file_paths)]
+    with NamedTemporaryFile(delete=True, suffix=".jpg") as temp_file:
+        file_path = temp_file.name
+        logger.debug(file_path)
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+            df_prediction = get_prediction_result(file_path)
+            logger.debug(df_prediction)
 
-    logger.debug(file_path)
-    # with open(file_path, "wb") as f:
-    #     shutil.copyfileobj(file.file, f)
-    
+        # with open(file_path, "wb") as f:
+        #     shutil.copyfileobj(file.file, f)
 
-    context = {
-            "request": request,
-            "products": {}
-        }
-    df_prediction = get_prediction_result(file_path)
+    context = {"request": request, "products": {}}
     if df_prediction is None:
         logger.info("No prediction found None")
-        return templates.TemplateResponse(
-            "result_fragment.html",
-            context=context
-        )
+        return templates.TemplateResponse("index.html", context=context)
 
     if df_prediction.is_empty():
         logger.info("No prediction found Empty")
-        return templates.TemplateResponse(
-            "result_fragment.html",
-            context=context
-        )
+        return templates.TemplateResponse("index.html", context=context)
 
     dfs_queried = []
     for product in df_prediction.to_dicts():
@@ -521,18 +535,15 @@ async def upload_image(request: Request, response:Response, file: UploadFile = F
     #     new_path = f"/home/hattajr/lab/ikmimart/.trash/test_images/{image_id}__not_found.jpg"
     #     os.rename(file_path, new_path)
     context = {"request": request, "products": products}
-    response =  templates.TemplateResponse(
-        "index.html",
-        context=context,
-        block_names=["result_list"]
+    response = templates.TemplateResponse(
+        "index.html", context=context, block_names=["result_list"]
     )
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=session_id,
-        max_age=SESSION_EXPIRY_MINUTES * 60, 
-        httponly=True, 
-        secure=False,    
-        samesite="lax"
+        max_age=SESSION_EXPIRY_MINUTES * 60,
+        httponly=True,
+        secure=False,
+        samesite="lax",
     )
     return response
-

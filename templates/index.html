@@ -1,10 +1,12 @@
 {%extends "/shared/base.html"%}
 {%block main_content%}
+
+<script src="/static/js/script.js" defer></script>
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
         {%block update_database%}
         <h1 role="button" hx-get="/cart/checkout/confirm" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
-        class="text-xl font-bold text-indigo-600 hover:text-indigo-800">IKMI MART</h1>
+            class="text-2xl font-bold text-slate-800">IKMI MART</h1>
         {% endblock %}
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
             <a href="#" hx-get="/cart" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
@@ -22,30 +24,44 @@
         </div>
     </div>
 </header>
+
+
+
 <div class="flex flex-col h-full">
+
+
+
+
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">
         <div class="p-3">
             <div class="flex items-center space-x-2">
-                <div class="relative flex-grow" 
-                    >
+                <div class="relative flex-grow">
                     <input type="text" name="q" id="search-input"
-                        hx-trigger="keyup[key=='Enter' && this.value.length > 2], keyup[this.value.length > 2] delay:500ms"  
-                        hx-get="/search" hx-target="#result-container" hx-swap="outerHTML" hx-indicator="#loading-indicator"
-                        hx-push-url="true"
+                        hx-trigger="keyup[key=='Enter' && this.value.length > 2], keyup[this.value.length > 2] delay:500ms"
+                        hx-get="/search" hx-target="#result-container" hx-swap="outerHTML"
+                        hx-indicator="#loading-indicator" hx-push-url="true"
                         class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
-                        placeholder="Search for products..." value="{%if last_query %}{{ last_query }}{% endif %}"
-                        >
+                        placeholder="Search for products..." value="{%if last_query %}{{ last_query }}{% endif %}">
                 </div>
-                <div role="button" class="disabled opacity-50 cursor-not-allowed"
-                    hx-get="/show-camera" hx-target="body" hx-swap="beforeend"
-                    class="p-2 rounded-lg hover:bg-gray-100 cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 hover:text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                <!-- <div role="button" class="disabled opacity-50 cursor-not-allowed pointer-events-none" -->
+                <div id="start-camera-btn" role="button" class="p-2 rounded-lg hover:bg-gray-100 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 hover:text-indigo-600"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                 </div>
+
+                <!-- Container to load camera UI with HTMX -->
+                <div id="camera-container"></div>
+
+                <!-- Form to upload photo -->
+                <!-- <form id="upload-form" hx-post="/upload" hx-target="#response" method="post" -->
+                    <!-- enctype="multipart/form-data"> -->
+                    <!-- <input type="file" id="file-input" name="photo" style="display:none;" /> -->
+                <!-- </form> -->
             </div>
         </div>
     </section>
@@ -53,8 +69,8 @@
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 flex-grow flex flex-col">
         <div class="p-3 flex flex-col h-full">
             <div class="flex items-center mb-2">
-                <h2 class="text-lg font-semibold text-gray-700 mr-2">Results</h2>
                 <img id="loading-indicator" class="my-indicator w-5 h-5" src="/static/rings.svg" alt="Loading..." />
+                <h2 class="text-lg font-semibold text-white mr-2">Results</h2>
             </div>
             {%block result_list%}
             <div id="result-container"
@@ -64,14 +80,14 @@
                     <div>
                         {% if not products%}
                         <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600">No product found</p>
+                            <p class="text-gray-600">No product found (╥﹏╥)</p>
                         </div>
                         {% endif %}
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {% for product in products %}
                             <div class="bg-white rounded-lg shadow overflow-hidden h-80">
-                                <img src="{%if product.image_url %}{{ product.image_url }}{% else %}/static/noimage.png{% endif %}" 
-                                    class="w-full h-60 object-cover" 
+                                <img src="{%if product.image_url %}{{ product.image_url }}{% else %}/static/noimage.png{% endif %}"
+                                    class="w-full h-60 object-cover"
                                     onerror="this.onerror=null;this.src='/static/noimage.png';">
                                 <div class="p-3">
                                     <h3 class="text-sm font-semibold text-gray-800 truncate mb-1">
@@ -101,7 +117,7 @@
                 </div>
                 {% else %}
                 <div class="flex justify-center items-center h-full text-gray-400">
-                    <p>Take a photo or search for a product</p>
+                    <p>Welcome to IKMI MART ヾ(＾∇＾) </p>
                 </div>
                 {% endif %}
             </div>
@@ -110,5 +126,6 @@
     </section>
 
 </div>
+
 
 {% endblock %}

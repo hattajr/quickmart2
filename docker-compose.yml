@@ -11,14 +11,26 @@ services:
     networks:
       - ikmimart_network  # Ensure it's on the same network if DB is isolated
 
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "1234:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - ikmimart_network
+
   app:
     build: .
     # No container_name here - will be defined in env-specific files
     depends_on:
       - db
       - redis
-    volumes:
-      - ./certs:/certs:ro 
     networks:
       - ikmimart_network
   
