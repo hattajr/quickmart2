@@ -63,7 +63,7 @@
                             <p class="text-gray-600">No product found</p>
                         </div>
                         {% endif %}
-                        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {% for product in products %}
                             <div class="bg-white rounded-lg shadow overflow-hidden h-80">
                                 <img src="{%if product.image_url %}{{ product.image_url }}{% else %}/static/noimage.png{% endif %}" 
