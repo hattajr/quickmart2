@@ -5,7 +5,7 @@
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
         {%block update_database%}
-        <h1 role="button" hx-get="/cart/checkout/confirm" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
+        <h1 role="button" hx-get="/" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
             class="text-2xl font-bold text-slate-800">IKMI MART</h1>
         {% endblock %}
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
@@ -28,8 +28,6 @@
 
 
 <div class="flex flex-col h-full">
-
-
 
 
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">

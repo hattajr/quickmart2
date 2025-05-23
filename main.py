@@ -388,7 +388,8 @@ async def clear_cart(request: Request, response: Response):
         del session_data[session_id]["cart"]
     response = templates.TemplateResponse(
         request=request,
-        name="cart/partials/cart.html",
+        # name="cart/partials/cart.html",
+        name="cart.html",
     )
     response.delete_cookie(SESSION_COOKIE_NAME)
     return response
@@ -426,14 +427,15 @@ async def checkout_confirm(request: Request, response: Response):
     if session_id and session_id in session_data:
         del session_data[session_id]
     # Create a response with cache-control headers to prevent back navigation
-    # redirect = RedirectResponse(url="/", status_code=303)
-    response = templates.TemplateResponse(request=request, name="index.html")
+    response =  response(status_code=204)
+    # response = templates.TemplateResponse(request=request, name="index.html")
     # Add headers to prevent caching
     response.headers["Cache-Control"] = (
         "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
     )
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
+    response.headers["HX-Redirect"] = "/"
     response.delete_cookie(SESSION_COOKIE_NAME)
     return response
 

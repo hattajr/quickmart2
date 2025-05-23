@@ -24,23 +24,37 @@ function startCamera() {
     return;
   }
 
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      video.srcObject = stream;
-
-      // Wait until video is ready before calling play
-      video.onloadedmetadata = () => {
-        video.play().catch(error => {
-          console.error("Video play failed:", error);
-        });
-      };
-    })
-    .catch(error => {
-      alert("Camera permission is required.");
-      console.error("Camera error:", error);
-    });
+  navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: { exact: "environment" }  // Try to get the back camera
+    }
+  })
+  .then(stream => {
+    video.srcObject = stream;
+    video.onloadedmetadata = () => {
+      video.play().catch(error => {
+        console.error("Video play failed:", error);
+      });
+    };
+  })
+  .catch(error => {
+    console.warn("Back camera not available, falling back to default camera.", error);
+    // Fallback to default (usually front camera)
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          video.play().catch(error => {
+            console.error("Video play failed:", error);
+          });
+        };
+      })
+      .catch(error => {
+        alert("Camera permission is required.");
+        console.error("Camera error:", error);
+      });
+  });
 }
-
   window.takePhoto = function () {
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -77,6 +91,8 @@ function startCamera() {
       fileInput.files = dataTransfer.files;
 
       form.requestSubmit();
+        const modal = form.closest('.fixed');
+        if (modal) modal.remove();
     }, 'image/jpeg', 0.95);
   }
 })();
