@@ -65,21 +65,25 @@ def infer_model(prompt: str, image_path: str = None) -> str:
 def get_prediction_result(image_path) -> pl.DataFrame | None:
     nl = """
         INSTRUCTION:
-        - Get the all any products name from the image
-        - Validate the products name if it is a valid product name
-        - Translate the prducts name to ENGLISH and INDONESIAN.
-        - Make the possible word combination with maximing word 4 for keywords for searching the product
-        - Sort it by the most relevant unique keywords to avoid too general result.
+        - Extract all product names from the image.
+        - Validate each product name to ensure it is a valid product name.
+        - Translate the product names to ENGLISH and INDONESIAN.
+        - Generate possible keyword combinations from the product name to maximize search relevance, with each keyword phrase containing up to 4 words.
+        - Keywords must be unique, meaningful, and optimized for database ILIKE queries. 
+            * Prioritize keywords that capture specific product identifiers, brand names, and descriptive terms.
+            * Avoid very short (1-2 letters) or overly generic keywords.
+            * Include combinations that can match partial phrases but minimize too general or overly broad matches.
+        - Sort the keywords by their expected relevance and uniqueness to reduce false positives in search results.
         - return all the product information in a list of json.
         EXAMPLE OUTPUT:
         EXAMPLE 1:
         ```json
-        [{\"name_original\": \"Laziza Chicken Recipe & Seasoning\", \"name_indonesian\":  \"Laziza Chicken Resep & Bumbu\", \"name_english\": \"Laziza Chicken Recipe & Seasoning\", \"keywords\": [\"Laziza Chicken\", \"Chicken Receipe\", \"Seasoning\", \"Bumbu\"], \"count\": 2}]
+        [{\"name_original\": \"Laziza Chicken Recipe & Seasoning\", \"name_indonesian\":  \"Laziza Chicken Resep & Bumbu\", \"name_english\": \"Laziza Chicken Recipe & Seasoning\", \"keywords\": [\"Laziza Chicken\", \"Chicken Receipe\", \"Seasoning\", \"Laziza\"], \"count\": 2}]
         ```
         EXAMPLE 2:
         ```json
         [
-        {\"name_original\": \"Laziza Chicken Recipe & Seasoning\", \"name_indonesian\":  \"Laziza Chicken Resep & Bumbu\", \"name_english\": \"Laziza Chicken Recipe & Seasoning\", \"keywords\": [\"Laziza Chicken\", \"Chicken Receipe\", \"Seasoning\", \"Bumbu\"], \"count\": 2},
+        {\"name_original\": \"Laziza Chicken Recipe & Seasoning\", \"name_indonesian\":  \"Laziza Chicken Resep & Bumbu\", \"name_english\": \"Laziza Chicken Recipe & Seasoning\", \"keywords\": [\"Laziza Chicken\", \"Chicken Receipe\", \"Seasoning\", \"Laziza\"], \"count\": 2},
         {\"name_original\": \"masako rasa ayam\", \"name_indonesian\":  \"masako rasa ayam\", \"name_english\": \"masako rasa ayam\", \"keywords\": [\"masako\", \"masako rasa ayam\", \"masako rasa\", \"masako rasa ayam\"], \"count\": 1}
         ]
         ```
