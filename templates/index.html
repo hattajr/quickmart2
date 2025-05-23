@@ -3,7 +3,8 @@
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
         {%block update_database%}
-        <h1 role="button" hx-get="/update-database" class="text-xl font-bold text-indigo-600 hover:text-indigo-800">IKMI MART</h1>
+        <h1 role="button" hx-get="/cart/checkout/confirm" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
+        class="text-xl font-bold text-indigo-600 hover:text-indigo-800">IKMI MART</h1>
         {% endblock %}
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
             <a href="#" hx-get="/cart" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
@@ -13,7 +14,7 @@
                 </span>
                 {%block cart_count_badge%}
                 <span id="cart-count-badge" hx-swap-oob="true"
-                    class="text-xs font-semibold bg-red-500 rounded-full px-1.5 py-0.5 absolute -top-2 -right-2">{%
+                    class="cart-badge-animate text-xs font-semibold bg-red-500 rounded-full px-1.5 py-0.5 absolute -top-2 -right-2">{%
                     if
                     total_items %}{{ total_items }}{% else %}0{% endif %}</span>
                 {% endblock %}
@@ -25,9 +26,12 @@
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">
         <div class="p-3">
             <div class="flex items-center space-x-2">
-                <div class="relative flex-grow" hx-trigger="input delay:500ms" hx-include="#search-input" hx-push-url="true" hx-params="*"
-                    hx-get="/search" hx-target="#result-container" hx-swap="outerHTML" hx-indicator="#loading-indicator">
+                <div class="relative flex-grow" 
+                    >
                     <input type="text" name="q" id="search-input"
+                        hx-trigger="keyup[key=='Enter' && this.value.length > 2], keyup[this.value.length > 2] delay:500ms"  
+                        hx-get="/search" hx-target="#result-container" hx-swap="outerHTML" hx-indicator="#loading-indicator"
+                        hx-push-url="true"
                         class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Search for products..." value="{%if last_query %}{{ last_query }}{% endif %}"
                         >

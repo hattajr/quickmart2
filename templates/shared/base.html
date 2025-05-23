@@ -8,14 +8,18 @@
     <script src="/static/js/htmx.min.js"></script>
     <script src="/static/js/script.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <script> htmx.config.allowNestedOobSwaps = false; </script>
     <style>
         body {
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             /* Removed overflow: hidden */
         }
-        input, textarea, select, button {
+
+        input,
+        textarea,
+        select,
+        button {
             font-size: 16px !important;
         }
 
@@ -60,6 +64,28 @@
 
         .htmx-request.my-indicator {
             display: inline;
+        }
+
+
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(1.5);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .cart-badge-animate {
+            animation: bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
     </style>
 </head>

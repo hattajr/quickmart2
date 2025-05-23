@@ -2,7 +2,7 @@
 {%block main_content%}
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-blue-600">IKMI MART</h1>
+        <h1 class="text-xl font-bold text-indigo-600">IKMI MART</h1>
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
             <a href="#"
                 class="flex pointer-events-none cursor-not-allowed items-center bg-indigo-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-md transition-all duration-200 relative">
@@ -11,7 +11,7 @@
                 </span>
                 {%block cart_count_badge%}
                 <span id="cart-count-badge" hx-swap-oob="true"
-                    class="text-xs font-semibold bg-red-500 rounded-full px-1.5 py-0.5 absolute -top-2 -right-2">{%
+                    class="cart-badge-animate text-xs font-semibold bg-red-500 rounded-full px-1.5 py-0.5 absolute -top-2 -right-2">{%
                     if
                     total_items %}{{ total_items }}{% else %}0{% endif %}</span>
                 {% endblock %}
