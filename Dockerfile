@@ -40,4 +40,5 @@ ENTRYPOINT []
 EXPOSE 80
 
 # Run the FastAPI application
-CMD ["uv", "run", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uv", "run", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", \
+    "--ssl-keyfile", "/certs/key.pem", "--ssl-certfile", "/certs/cert.pem"]

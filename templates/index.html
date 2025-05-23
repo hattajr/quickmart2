@@ -33,6 +33,7 @@
                         >
                 </div>
                 <div role="button" class="disabled opacity-50 cursor-not-allowed"
+                    hx-get="/show-camera" hx-target="body" hx-swap="beforeend"
                     class="p-2 rounded-lg hover:bg-gray-100 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 hover:text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -62,11 +63,11 @@
                             <p class="text-gray-600">No product found</p>
                         </div>
                         {% endif %}
-                        <div class="grid grid-cols-3 gap-4">
+                        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
                             {% for product in products %}
-                            <div class="bg-white rounded-lg shadow overflow-hidden">
+                            <div class="bg-white rounded-lg shadow overflow-hidden h-80">
                                 <img src="{%if product.image_url %}{{ product.image_url }}{% else %}/static/noimage.png{% endif %}" 
-                                    class="w-full h-32 object-cover" 
+                                    class="w-full h-60 object-cover" 
                                     onerror="this.onerror=null;this.src='/static/noimage.png';">
                                 <div class="p-3">
                                     <h3 class="text-sm font-semibold text-gray-800 truncate mb-1">

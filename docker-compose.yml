@@ -17,6 +17,8 @@ services:
     depends_on:
       - db
       - redis
+    volumes:
+      - ./certs:/certs:ro 
     networks:
       - ikmimart_network
   
