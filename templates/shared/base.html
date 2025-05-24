@@ -101,6 +101,44 @@
     <footer class="container-app mt-4 px-4">
         <p class="text-center text-gray-500 text-xs">© 2025 IKMI MART</p>
     </footer>
+
+    <script>
+        //  Set up a timer to reload the page every 5 minutes if there is no user activity
+        let timeoutId;
+
+        function resetTimer() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(reloadPage, 60000 * 5); // 5 minutes
+        }
+
+        function reloadPage() {
+            location.reload();
+        }
+
+        // Function to set focus after the page has reloaded
+        function setFocus() {
+            const inputElement = document.getElementById("searchBox");
+            if (inputElement) {
+                inputElement.focus();
+            }
+        }
+
+        // Start the timer initially
+        resetTimer();
+
+        // Listen for user activity events
+        document.addEventListener('mousemove', resetTimer);
+        document.addEventListener('keypress', resetTimer);
+        document.addEventListener('click', resetTimer);
+        document.addEventListener('scroll', resetTimer);
+        document.addEventListener('touchstart', resetTimer);
+        document.addEventListener('touchmove', resetTimer);
+        document.addEventListener('keydown', resetTimer);
+        document.addEventListener('keyup', resetTimer);
+        document.addEventListener('input', resetTimer);
+
+    </script>
+
 </body>
 
 </html>

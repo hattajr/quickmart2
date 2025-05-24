@@ -14,9 +14,6 @@
         <!-- Camera Section - Square -->
         <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-3 flex-shrink-0">
             <div class="p-3">
-                <!-- <div class="flex justify-between items-center mb-2">
-                <h2 class="text-lg font-semibold text-gray-700">Image Search</h2>
-            </div> -->
 
                 <div class="w-full relative">
                     <div style="padding-top: 100%; position: relative;">
@@ -35,90 +32,55 @@
 
         <!-- Instructions Section -->
         <div class="space-y-4">
-            <div class="bg-indigo-100/50 rounded-lg border border-indigo-200">
+            <div class="bg-indigo-100/50 rounded-md p-2 border border-indigo-200">
                 <ul class="space-y-2 text-sm text-gray-600">
                     <li class="flex items-center">
-                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Make sure the item shows the brand name, is taken in good light, and has no glare or reflections. 
-                    </li>
-                </ul>
-        </div>
-            <!-- English Instructions -->
-            <!-- <div class="bg-blue-100/50 p-4 rounded-lg">
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Item must have a visible brand name on the cover
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Use a clear, well-lit image
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Avoid backlighting, glare, or reflections
-                    </li>
-                </ul>
-            </div> -->
-
-            <!-- Indonesian Instructions -->
-            <!-- <div class="bg-blue-100/50 p-4 rounded-lg">
-                <ul class="space-y-2 text-sm text-gray-600">
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Hanya untuk item dengan nama merek yang terlihat jelas
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Gunakan gambar yang jelas dan pencahayaan yang cukup
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Hindari cahaya latar, pantulan, atau silau dari lampu
+                        Make sure the item shows the brand name, is taken in good light, and has no glare or
+                        reflections.
                     </li>
                 </ul>
             </div>
-        </div> -->
 
 
-        <div class="p-4 border-t bg-gray-50 flex justify-between">
-            <button onclick="this.closest('.fixed').remove()"
-                class="px-4 py-2 text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300">
-                Cancel
-            </button>
-            <form id="upload-form" hx-post="/upload" hx-target="#result-container" hx-swap="outerHTML"
-                hx-encoding="multipart/form-data" hx-indicator="#loading-indicator">
-                <input type="file" name="file" id="file-input" class="hidden">
+            <div class="p-4 border-t bg-gray-50 flex justify-between">
+                <button onclick="this.closest('.fixed').remove()"
+                    class="px-4 py-2 text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300">
+                    Cancel
+                </button>
+                <form id="upload-form" hx-post="/upload" hx-target="#result-container" hx-swap="outerHTML"
+                    hx-encoding="multipart/form-data" hx-indicator="#loading-indicator">
+                    <input type="file" name="file" id="file-input" class="hidden">
 
-                <div id="button-container">
-                    <button type="button" onclick="takePhoto()"
-                        class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-800 focus:ring-2 focus:ring-blue-300 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Take
-                    </button>
-                </div>
-            </form>
+                    <div id="button-container">
+                        <button type="button" onclick="takePhoto()"
+                            class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-800 focus:ring-2 focus:ring-blue-300 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Take
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-</div>
+
+
+<script>
+    setTimeout(() => {
+    const modal = document.querySelector('.fixed.inset-0.z-50');
+    if (modal) {
+        modal.remove();
+    }
+}, 10000);
+</script>
