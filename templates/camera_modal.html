@@ -32,6 +32,57 @@
                 </div>
             </div>
         </section>
+        <!-- Instructions Section -->
+        <div class="space-y-4 p-6 border-t border-b border-gray-200 bg-blue-50/80">
+            <!-- English Instructions -->
+            <div class="bg-blue-100/50 p-4 rounded-lg">
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Item must have a visible brand name on the cover
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Use a clear, well-lit image
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Avoid backlighting, glare, or reflections
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Indonesian Instructions -->
+            <div class="bg-blue-100/50 p-4 rounded-lg">
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Hanya untuk item dengan nama merek yang terlihat jelas
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Gunakan gambar yang jelas dan pencahayaan yang cukup
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Hindari cahaya latar, pantulan, atau silau dari lampu
+                    </li>
+                </ul>
+            </div>
+        </div>
+
 
         <div class="p-4 border-t bg-gray-50 flex justify-between">
             <button onclick="this.closest('.fixed').remove()"
@@ -44,7 +95,7 @@
 
                 <div id="button-container">
                     <button type="button" onclick="takePhoto()"
-                        class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200">
+                        class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-800 focus:ring-2 focus:ring-blue-300 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

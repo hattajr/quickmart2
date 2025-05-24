@@ -196,15 +196,6 @@ def root(request: Request, response: Response, db: Session = Depends(get_local_d
     response.delete_cookie(SESSION_COOKIE_NAME)
     return response
 
-@app.get("/clean-session", response_class=HTMLResponse)
-def clean_session(request: Request, response: Response):
-    response = templates.TemplateResponse(request=request, name="index.html")
-    response.delete_cookie(SESSION_COOKIE_NAME)
-    session_data.clear()
-    logger.debug(session_data.keys())
-    return response
-
-
 @app.get("/search", response_class=HTMLResponse)
 def search(
     request: Request,
