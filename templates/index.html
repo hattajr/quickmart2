@@ -4,12 +4,12 @@
 <script src="/static/js/script.js" defer></script>
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
-        <a href="/" class="px-4 py-2 text-4xl text-slate-800 hover:text-slate-900">IKMI MART</a>
+        <a href="/" class="px-4 py-2 text-2xl text-slate-800 hover:text-slate-900">IKMI MART</a>
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
             <a href="#" hx-get="/cart" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
                 class="flex items-center bg-indigo-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-md transition-all duration-200 relative">
                 <span class="mr-1.5">
-                    <img src="/static/cart_icon.svg" alt="Cart" class="w-8 h-8">
+                    <img src="/static/cart_icon.svg" alt="Cart" class="w-6 h-6">
                 </span>
                 {%block cart_count_badge%}
                 <span id="cart-count-badge" hx-swap-oob="true"
@@ -69,7 +69,7 @@
                 <div id="result-list">
                     <div>
                         {% if not products%}
-                        <div class="text-center p-6 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+                        <div class="text-center p-6 bg-gray-50 ">
                             <div class="space-y-3">
                                 <p class="text-gray-700 text-lg font-medium">(╥﹏╥) No products found</p>
                                 <p class="text-gray-500 text-sm">Please try searching again with different keywords or take a clearer photo.</p>

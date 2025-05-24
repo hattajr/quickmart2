@@ -111,6 +111,8 @@ async def get_session(request: Request, response: Response) -> str:
 def get_cart(session_id: str, db: Session) -> pl.DataFrame:
     session_data = get_session_data(session_id)
     cart = session_data.get("cart")
+    if not cart:
+        return pl.DataFrame()
     logger.debug(cart)
 
     cart_ = []
@@ -175,9 +177,11 @@ def search_product_by_id(id: int | list[int], db: Session) -> pl.DataFrame:
     if isinstance(id, list):
         id = ",".join([str(i) for i in id])
         query = f"SELECT * FROM products WHERE id IN ({id})"
+        logger.debug(query)
     else:
         id = str(id)
         query = f"SELECT * FROM products WHERE id = {id}"
+        logger.debug(query)
     return query_products(query, db)
 
 
@@ -204,7 +208,9 @@ def search(
     db: Session = Depends(get_local_db),
 ):
     if not request.headers.get("HX-Request"):
-        response = templates.TemplateResponse(request=request, name="index.html")
+        response = RedirectResponse(url="/")
+        response.delete_cookie(SESSION_COOKIE_NAME)
+        logger.debug(session_data.keys())
         return response
 
     session_id, response = get_or_create_session(request=request, response=response)
@@ -260,15 +266,24 @@ async def view_cart(
     request: Request, response: Response, db: Session = Depends(get_local_db)
 ):
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
+    if not session_id or session_id not in session_data:
+        response = RedirectResponse(url="/")
+        response.delete_cookie(SESSION_COOKIE_NAME)
+        return response
+
     df_cart = get_cart(session_id, db=db)
     logger.debug(df_cart)
-
     context = dict(
         cart=df_cart.to_dicts(),
         total_price=f"{df_cart['total_price'].sum():,.0f}",
         total_items=df_cart["qty"].sum(),
         last_query=session_data[session_id]["search_history"][-1],
     )
+
+    if not request.headers.get("HX-Request"):
+        return templates.TemplateResponse(
+            request=request, name="cart.html", context=context
+        )
     return templates.TemplateResponse(
         request=request, name="cart.html", context=context
     )
@@ -485,9 +500,6 @@ async def upload_image(
             request=request, name="index.html", context=context
         )
 
-    # image_id = str(uuid.uuid4())
-    # file_path = f"./{image_id}.jpg"
-
     with NamedTemporaryFile(delete=True, suffix=".jpg") as temp_file:
         file_path = temp_file.name
         logger.debug(file_path)
@@ -496,17 +508,14 @@ async def upload_image(
             df_prediction = get_prediction_result(file_path)
             logger.debug(df_prediction)
 
-        # with open(file_path, "wb") as f:
-        #     shutil.copyfileobj(file.file, f)
-
     context = {"request": request, "products": {}}
     if df_prediction is None:
         logger.info("No prediction found None")
-        return templates.TemplateResponse("index.html", context=context)
+        return templates.TemplateResponse("index.html", context=context, block_name="result_list")
 
     if df_prediction.is_empty():
         logger.info("No prediction found Empty")
-        return templates.TemplateResponse("index.html", context=context)
+        return templates.TemplateResponse("index.html", context=context, block_name="result_list")
 
     dfs_queried = []
     for product in df_prediction.to_dicts():
@@ -532,10 +541,13 @@ async def upload_image(
     df_result = pl.concat(dfs_queried, how="vertical_relaxed")
     products = df_result.to_dicts()
     logger.debug(df_result)
-    # df_result = pl.DataFrame()
+
+
+    # TODO: Log not found image
     # if df_result.is_empty():
     #     new_path = f"/home/hattajr/lab/ikmimart/.trash/test_images/{image_id}__not_found.jpg"
     #     os.rename(file_path, new_path)
+
     context = {"request": request, "products": products}
     response = templates.TemplateResponse(
         "index.html", context=context, block_names=["result_list"]
@@ -549,3 +561,8 @@ async def upload_image(
         samesite="lax",
     )
     return response
+
+    # context = {"request": request, "products": products.to_dicts()}
+    # response = templates.TemplateResponse(
+    #     "index.html", context=context, block_names=["result_list"]
+    # )

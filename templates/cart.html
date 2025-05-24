@@ -2,12 +2,12 @@
 {%block main_content%}
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
-        <a href="/" class="px-4 py-2 text-4xl text-slate-800 hover:text-slate-900">IKMI MART</a>
+        <a href="/" class="px-4 py-2 text-2xl text-slate-800 hover:text-slate-900">IKMI MART</a>
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
             <a href="#"
                 class="flex pointer-events-none cursor-not-allowed items-center bg-indigo-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-md transition-all duration-200 relative">
                 <span class="mr-1.5">
-                    <img src="/static/cart_icon.svg" alt="Cart" class="w-8 h-8">
+                    <img src="/static/cart_icon.svg" alt="Cart" class="w-6 h-6">
                 </span>
                 {%block cart_count_badge%}
                 <span id="cart-count-badge" hx-swap-oob="true"
@@ -52,7 +52,7 @@
 
         <!-- Order summary (fixed bottom) -->
         <div class="fixed inset-x-0 bottom-0 z-10 border-t border-gray-200 bg-white p-5 shadow-lg rounded-t-2xl">
-            <div class="max-w-lg mx-auto">
+            <div class="container-app  mx-auto">
                 <!-- Navigation buttons -->
                 <div class="flex justify-between items-center mb-4">
                     <a href="#" hx-get="/search?q={{last_query}}" hx-target="body" hx-push-url="true"
@@ -64,7 +64,7 @@
                         </svg>
                         Continue Shopping
                     </a>
-                    <button hx-post="/cart/clear" hx-target="#cart-details"
+                    <button hx-post="/cart/clear" hx-target="body" hx-swap="OuterHTML"
                         class="text-red-500 hover:text-red-700 font-medium flex items-center transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
