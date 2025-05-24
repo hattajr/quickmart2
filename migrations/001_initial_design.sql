@@ -12,6 +12,8 @@ CREATE TABLE "products" (
 	"image_url" TEXT,
 	"created_at" TIMESTAMPTZ,
 	"updated_at" TIMESTAMPTZ,
+	"purchase_price" INTEGER,
+	"latest_price" INTEGER,
 	PRIMARY KEY("id")
 );
 CREATE INDEX "idx_products_category_id"

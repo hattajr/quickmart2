@@ -149,7 +149,27 @@ def insert_data():
             "❌ products_new table already exists in the local database. No data inserted."
         )
 
+def insert_data_from_backup():
+    backup_file = ".trash/data/backup_products.parquet"
+    if not Path(backup_file).exists():
+        print(f"❌ Backup file {backup_file} does not exist.")
+        return
+
+    df = pl.read_parquet(backup_file)
+    if df.is_empty():
+        print("❌ No data found in the backup file.")
+        return
+
+    df.write_database(
+        table_name="products",
+        connection=RDB_URL,
+        if_table_exists="append",
+        engine="sqlalchemy",
+    )
+    print("✅ Data inserted into products table from backup.")
+
+
 
 if __name__ == "__main__":
     run_migrations()
-    insert_data()
+    insert_data_from_backup()

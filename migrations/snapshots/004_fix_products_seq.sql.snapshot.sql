@@ -176,8 +176,7 @@ CREATE TABLE public.products (
     image_url text,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
-    purchase_price integer,
-    latest_price integer
+    scraped_image_url text
 );
 
 

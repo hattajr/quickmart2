@@ -148,36 +148,30 @@ def query_products(query: str, db: Session) -> pl.DataFrame:
     logger.debug(df)
     if not df.is_empty():
         df = df.with_columns(
-            image_url=pl.when(pl.col("barcode").is_not_null())
-            .then(
+                image_url = pl.when(
+                ~(pl.col("image_url").is_not_null()) & (pl.col("barcode").is_not_null())
+            ).then(
                 pl.concat_str(
                     [pl.lit(PRODUCT_IMAGE_URL), pl.col("barcode")], separator="/"
                 )
             )
-            .otherwise(None)
+            .otherwise(pl.col("image_url"))
         ).with_columns(
-            image_url=pl.when(pl.col("image_url").is_not_null())
+            image_url=pl.when(pl.col("image_url").str.starts_with(PRODUCT_IMAGE_URL))
             .then(
                 pl.concat_str(
                     [pl.col("image_url"), pl.lit(IMAGE_FORMAT)], separator="."
                 )
             )
-            .otherwise(None)
-        ).with_columns(
-            image_url=pl.when(
-                ~(pl.col("image_url").is_not_null()) & (pl.col("scraped_image_url").is_not_null())
-            )
-            .then(pl.col("scraped_image_url"))
             .otherwise(pl.col("image_url"))
         )
-
         logger.debug(df)
         return df
     return pl.DataFrame()
 
 
 def search_product_by_keyword(keyword: str, db: Session) -> pl.DataFrame:
-    q = f"SELECT id, barcode, name, price, unit, scraped_image_url FROM products WHERE name ILIKE '%{keyword}%' OR keyword ILIKE '%{keyword}%'"
+    q = f"SELECT id, barcode, name, price, unit, image_url FROM products WHERE name ILIKE '%{keyword}%' OR keyword ILIKE '%{keyword}%'"
     return query_products(q, db)
 
 

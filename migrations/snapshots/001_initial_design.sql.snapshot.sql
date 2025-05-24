@@ -175,7 +175,9 @@ CREATE TABLE public.products (
     keyword character varying(255),
     image_url text,
     created_at timestamp with time zone,
-    updated_at timestamp with time zone
+    updated_at timestamp with time zone,
+    purchase_price integer,
+    latest_price integer
 );
 
 
