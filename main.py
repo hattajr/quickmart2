@@ -164,7 +164,7 @@ def query_products(query: str, db: Session) -> pl.DataFrame:
                 )
             )
             .otherwise(pl.col("image_url"))
-        )
+        ).with_columns(name=pl.col("name").str.to_titlecase())
         logger.debug(df)
         return df
     return pl.DataFrame()
