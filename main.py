@@ -163,13 +163,21 @@ def query_products(query: str, db: Session) -> pl.DataFrame:
                 )
             )
             .otherwise(None)
+        ).with_columns(
+            image_url=pl.when(
+                ~(pl.col("image_url").is_not_null()) & (pl.col("scraped_image_url").is_not_null())
+            )
+            .then(pl.col("scraped_image_url"))
+            .otherwise(pl.col("image_url"))
         )
+
+        logger.debug(df)
         return df
     return pl.DataFrame()
 
 
 def search_product_by_keyword(keyword: str, db: Session) -> pl.DataFrame:
-    q = f"SELECT id, barcode, name, price, unit FROM products WHERE name ILIKE '%{keyword}%' OR keyword ILIKE '%{keyword}%'"
+    q = f"SELECT id, barcode, name, price, unit, scraped_image_url FROM products WHERE name ILIKE '%{keyword}%' OR keyword ILIKE '%{keyword}%'"
     return query_products(q, db)
 
 

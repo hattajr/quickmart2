@@ -1,0 +1,1 @@
+ALTER TABLE products ADD COLUMN scraped_image_url TEXT;
