@@ -78,12 +78,12 @@
                         {% endif %}
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {% for product in products %}
-                            <div class="bg-white rounded-lg shadow overflow-hidden h-80">
+                            <div class="bg-white rounded-lg shadow overflow-hidden h-84">
                                 <img src="{%if product.image_url %}{{ product.image_url }}{% else %}/static/noimage.png{% endif %}"
                                     class="w-full h-60 object-cover"
                                     onerror="this.onerror=null;this.src='/static/noimage.png';">
                                 <div class="p-3">
-                                    <h3 class="text-sm font-semibold text-gray-800 truncate mb-1">
+                                    <h3 class="text-sm font-semibold text-gray-800 mb-1 line-clamp-2 leading-tight min-h-[2.5rem]">
                                         {{ product.name }}
                                     </h3>
                                     <div class="flex items-center justify-between">
