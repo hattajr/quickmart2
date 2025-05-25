@@ -25,5 +25,6 @@ dependencies = [
     "aiocache",
     "pillow",
     "pandas",
-    "sqlalchemy"
+    "sqlalchemy",
+    "python-telegram-bot>=22.1",
 ]

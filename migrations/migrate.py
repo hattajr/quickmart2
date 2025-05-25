@@ -160,15 +160,18 @@ def insert_data_from_backup():
         print("❌ No data found in the backup file.")
         return
 
-    df.write_database(
-        table_name="products",
-        connection=RDB_URL,
-        if_table_exists="append",
-        engine="sqlalchemy",
-    )
-    print("✅ Data inserted into products table from backup.")
-
-
+    q = "SELECT * FROM products"
+    df_local = pl.read_database_uri(query=q, uri=RDB_URL)
+    if df_local.is_empty():
+        df.write_database(
+            table_name="products",
+            connection=RDB_URL,
+            if_table_exists="append",
+            engine="sqlalchemy",
+        )
+        print("✅ Data inserted into products table from backup.")
+    else:
+        print("❌ products table already exists in the local database. No data inserted.")
 
 if __name__ == "__main__":
     run_migrations()

@@ -31,6 +31,14 @@ services:
     container_name: ikmimart_redis_dev
     ports:
       - "${REDIS_PORT:-6379}:6379"
+  
+  bot:
+    container_name: ikmimart_bot_dev
+    env_file:
+      - .env.dev
+    volumes:
+      - .:/app
+    command: uv run bot.py
 
 volumes:
   postgres_data:
