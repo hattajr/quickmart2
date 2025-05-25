@@ -35,7 +35,7 @@
                         hx-trigger="keyup[key=='Enter' && this.value.length > 2], keyup[this.value.length > 2] delay:500ms"
                         hx-get="/search" hx-target="#result-container" hx-swap="outerHTML"
                         hx-indicator="#loading-indicator" hx-push-url="true"
-                        class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+                        class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-500"
                         placeholder="Search for products..." value="{%if last_query %}{{ last_query }}{% endif %}">
                 </div>
                 <div id="start-camera-btn" role="button" class="p-1 rounded-lg hover:bg-gray-100 cursor-pointer">
@@ -82,7 +82,7 @@
                                 <img src="{%if product.image_url %}{{ product.image_url }}{% else %}/static/noimage.png{% endif %}"
                                     class="w-full h-60 object-cover"
                                     onerror="this.onerror=null;this.src='/static/noimage.png';">
-                                <div class="p-3">
+                                <div class="p-3  bg-indigo-50/100">
                                     <h3 class="text-sm font-semibold text-gray-800 mb-1 line-clamp-2 leading-tight min-h-[2.5rem]">
                                         {{ product.name }}
                                     </h3>
