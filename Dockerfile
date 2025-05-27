@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project --no-dev
 
 # Copy project source code
-ADD . /app
+COPY . /app
 
 # Install the project into the virtual environment
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -40,5 +40,5 @@ ENTRYPOINT []
 EXPOSE 80
 
 # Run the FastAPI application
-CMD ["uv", "run", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", \
-    "--ssl-keyfile", "/certs/key.pem", "--ssl-certfile", "/certs/cert.pem"]
+# CMD ["uv", "run", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", \
+#     "--ssl-keyfile", "/certs/key.pem", "--ssl-certfile", "/certs/cert.pem"]
