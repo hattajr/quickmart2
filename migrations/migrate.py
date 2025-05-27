@@ -27,7 +27,10 @@ RDB_HOST_DOCKER = os.getenv("RDB_HOST_DOCKER")
 RDB_PORT = os.getenv("RDB_PORT")
 RDB_DATABASE = os.getenv("RDB_DATABASE")
 
+GRAFANA_DATABASE = os.getenv("GF_DATABASE_NAME", "grafana")
+
 RDB_URL = f"postgresql://{RDB_USER}:{RDB_PASSWORD}@{RDB_HOST}:{RDB_PORT}/{RDB_DATABASE}"
+RDB_URL_BASE = f"postgresql://{RDB_USER}:{RDB_PASSWORD}@{RDB_HOST}:{RDB_PORT}"
 
 
 def dump_schema_to_file(output_path):
@@ -149,6 +152,7 @@ def insert_data():
             "❌ products_new table already exists in the local database. No data inserted."
         )
 
+
 def insert_data_from_backup():
     backup_file = ".trash/data/backup_products.parquet"
     if not Path(backup_file).exists():
@@ -171,7 +175,13 @@ def insert_data_from_backup():
         )
         print("✅ Data inserted into products table from backup.")
     else:
-        print("❌ products table already exists in the local database. No data inserted.")
+        print(
+            "❌ products table already exists in the local database. No data inserted."
+        )
+
+
+
+
 
 if __name__ == "__main__":
     run_migrations()

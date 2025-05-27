@@ -1,27 +1,26 @@
 import datetime
+import os
+import shutil
 import sys
 import uuid
 from collections import deque
+from tempfile import NamedTemporaryFile
 from typing import Any
 
-import shutil
-from tempfile import NamedTemporaryFile
 import polars as pl
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Query, Request, Response, UploadFile
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2_fragments.fastapi import Jinja2Blocks
 from loguru import logger
 from sqlalchemy.orm import Session
-from fastapi.middleware.gzip import GZipMiddleware
-import os
-from schema.schema import SearchLog
-from services.db_services import log_search_query
-
 
 from db.database import get_local_db
 from inference import get_prediction_result
+from schema.schema import SearchLog
+from services.db_services import log_search_query
 
 load_dotenv()
 
@@ -150,24 +149,32 @@ def query_products(query: str, db: Session) -> pl.DataFrame:
     df = pl.read_database(query=query, connection=db)
     logger.debug(df)
     if not df.is_empty():
-        df = df.with_columns(
-                image_url = pl.when(
-                ~(pl.col("image_url").is_not_null()) & (pl.col("barcode").is_not_null())
-            ).then(
-                pl.concat_str(
-                    [pl.lit(PRODUCT_IMAGE_URL), pl.col("barcode")], separator="/"
+        df = (
+            df.with_columns(
+                image_url=pl.when(
+                    ~(pl.col("image_url").is_not_null())
+                    & (pl.col("barcode").is_not_null())
                 )
-            )
-            .otherwise(pl.col("image_url"))
-        ).with_columns(
-            image_url=pl.when(pl.col("image_url").str.starts_with(PRODUCT_IMAGE_URL))
-            .then(
-                pl.concat_str(
-                    [pl.col("image_url"), pl.lit(IMAGE_FORMAT)], separator="."
+                .then(
+                    pl.concat_str(
+                        [pl.lit(PRODUCT_IMAGE_URL), pl.col("barcode")], separator="/"
+                    )
                 )
+                .otherwise(pl.col("image_url"))
             )
-            .otherwise(pl.col("image_url"))
-        ).with_columns(name=pl.col("name").str.to_titlecase())
+            .with_columns(
+                image_url=pl.when(
+                    pl.col("image_url").str.starts_with(PRODUCT_IMAGE_URL)
+                )
+                .then(
+                    pl.concat_str(
+                        [pl.col("image_url"), pl.lit(IMAGE_FORMAT)], separator="."
+                    )
+                )
+                .otherwise(pl.col("image_url"))
+            )
+            .with_columns(name=pl.col("name").str.to_titlecase())
+        )
         logger.debug(df)
         return df
     return pl.DataFrame()
@@ -204,6 +211,7 @@ def root(request: Request, response: Response, db: Session = Depends(get_local_d
     )
     response.delete_cookie(SESSION_COOKIE_NAME)
     return response
+
 
 @app.get("/search", response_class=HTMLResponse)
 def search(
@@ -246,10 +254,8 @@ def search(
             query=keyword,
             searched_at=get_now().isoformat(),
             items_found=len(products) if not products.is_empty() else 0,
-        )
+        ),
     )
-
-
 
     context = {"request": request, "products": products.to_dicts()}
     response = templates.TemplateResponse(
@@ -459,7 +465,7 @@ async def checkout_confirm(request: Request, response: Response):
     if session_id and session_id in session_data:
         del session_data[session_id]
     # Create a response with cache-control headers to prevent back navigation
-    response =  response(status_code=204)
+    response = response(status_code=204)
     # response = templates.TemplateResponse(request=request, name="index.html")
     # Add headers to prevent caching
     response.headers["Cache-Control"] = (
@@ -504,8 +510,7 @@ async def upload_image(
     url = request.headers.get("HX-Current-URL").split("/")[-1]
     if url == "cart":
         logger.debug(session_data[session_id])
-        # TODO: change this
-        q = "aya"
+        q = session_data[session_id]["search_history"][-1]
         products_search = search_product_by_keyword(q, db)
         products = get_cart(session_id, db=db)
         context = dict(
@@ -528,11 +533,15 @@ async def upload_image(
     context = {"request": request, "products": {}}
     if df_prediction is None:
         logger.info("No prediction found None")
-        return templates.TemplateResponse("index.html", context=context, block_name="result_list")
+        return templates.TemplateResponse(
+            "index.html", context=context, block_name="result_list"
+        )
 
     if df_prediction.is_empty():
         logger.info("No prediction found Empty")
-        return templates.TemplateResponse("index.html", context=context, block_name="result_list")
+        return templates.TemplateResponse(
+            "index.html", context=context, block_name="result_list"
+        )
 
     dfs_queried = []
     for product in df_prediction.to_dicts():
@@ -546,6 +555,15 @@ async def upload_image(
             if not df.is_empty():
                 dfs_queried.append(df)
                 found = True
+                log_search_query(
+                    db=db,
+                    search_log=SearchLog(
+                        session_id=session_id,
+                        query=keyword,
+                        searched_at=get_now().isoformat(),
+                        items_found=len(df) if not df.is_empty() else 0,
+                    ),
+                )
                 break
         if found:
             continue
@@ -558,7 +576,6 @@ async def upload_image(
     df_result = pl.concat(dfs_queried, how="vertical_relaxed")
     products = df_result.to_dicts()
     logger.debug(df_result)
-
 
     # TODO: Log not found image
     # if df_result.is_empty():
