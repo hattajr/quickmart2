@@ -54,7 +54,22 @@ services:
       - db
     networks:
       - ikmimart_network
+    
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ikmimart_grafana
+    restart: always
+    ports:
+      - "2234:3000"
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+    networks:
+      - ikmimart_network
 
 volumes:
   postgres_data:
+    driver: local
+  grafana_data:
     driver: local
