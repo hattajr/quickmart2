@@ -3,7 +3,6 @@ version: '3.8'
 services:
   migrate:
     build: .
-    restart: always
     command: python /app/migrations/migrate.py
     volumes:
       - ./migrations:/app/migrations
@@ -12,20 +11,6 @@ services:
     networks:
       - ikmimart_network  # Ensure it's on the same network if DB is isolated
 
-  nginx:
-    image: nginx:alpine
-    restart: always
-    container_name: nginx_proxy
-    depends_on:
-      - app
-    ports:
-      - "80:80"
-      - "1234:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
-    networks:
-      - ikmimart_network
 
   app:
     build: .
@@ -54,16 +39,7 @@ services:
     image: redis:7.4
     restart: always
     # No container_name here - will be defined in env-specific files
-    command: ["redis-server", "--maxmemory", "3gb", "--maxmemory-policy", "allkeys-lru"]
-    networks:
-      - ikmimart_network
-
-  bot:
-    build: .
-    restart: always
-    command: python bot.py
-    depends_on:
-      - db
+    command: ["redis-server", "--maxmemory", "2gb", "--maxmemory-policy", "allkeys-lru"]
     networks:
       - ikmimart_network
 
@@ -71,6 +47,3 @@ networks:
   ikmimart_network:
     driver: bridge
 
-volumes:
-  postgres_data:
-    driver: local

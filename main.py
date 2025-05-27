@@ -15,6 +15,7 @@ from jinja2_fragments.fastapi import Jinja2Blocks
 from loguru import logger
 from sqlalchemy.orm import Session
 from fastapi.middleware.gzip import GZipMiddleware
+import os
 
 
 from db.database import get_local_db
@@ -23,7 +24,7 @@ from inference import get_prediction_result
 load_dotenv()
 
 logger.remove()
-logger.add(sys.stderr, level="DEBUG")
+logger.add(sys.stderr, level=os.getenv("LOG_LEVEL", "DEBUG"))
 
 app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=1000)
