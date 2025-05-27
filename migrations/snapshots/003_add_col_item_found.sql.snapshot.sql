@@ -217,7 +217,7 @@ CREATE TABLE public.schema_migrations (
 
 CREATE TABLE public.search_logs (
     id integer NOT NULL,
-    session_id uuid NOT NULL,
+    session_id text NOT NULL,
     query text NOT NULL,
     searched_at timestamp with time zone DEFAULT now(),
     items_found integer DEFAULT 0 NOT NULL

@@ -1,0 +1,2 @@
+ALTER TABLE search_logs
+ADD COLUMN items_found INTEGER NOT NULL DEFAULT 0;

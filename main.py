@@ -16,6 +16,8 @@ from loguru import logger
 from sqlalchemy.orm import Session
 from fastapi.middleware.gzip import GZipMiddleware
 import os
+from schema.schema import SearchLog
+from services.db_services import log_search_query
 
 
 from db.database import get_local_db
@@ -236,6 +238,18 @@ def search(
     session_data[session_id]["search_history"].append(keyword)
     logger.debug(session_data[session_id]["search_history"])
     logger.debug(f"{session_id}: {session_data[session_id]}")
+
+    log_search_query(
+        db=db,
+        search_log=SearchLog(
+            session_id=session_id,
+            query=keyword,
+            searched_at=get_now().isoformat(),
+            items_found=len(products) if not products.is_empty() else 0,
+        )
+    )
+
+
 
     context = {"request": request, "products": products.to_dicts()}
     response = templates.TemplateResponse(
