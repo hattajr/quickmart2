@@ -9,3 +9,4 @@ images/
 metadata-files/
 certs/
 nginx/certs/
+.nginx**
