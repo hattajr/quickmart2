@@ -92,7 +92,7 @@
                             {% for product in products %}
                             <div class="bg-white rounded-lg shadow overflow-hidden h-84">
                                 <img src="{%if product.image_url %}{{ product.image_url }}{% else %}/static/noimage.png{% endif %}"
-                                    class="w-full h-60 object-cover"
+                                    class="w-full h-60 object-contain margin-auto"
                                     onerror="this.onerror=null;this.src='/static/noimage.png';">
                                 <div class="p-3  bg-indigo-50/100">
                                     <h3
