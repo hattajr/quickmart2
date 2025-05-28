@@ -180,9 +180,6 @@ def insert_data_from_backup():
         )
 
 
-
-
-
 if __name__ == "__main__":
     run_migrations()
     insert_data_from_backup()
