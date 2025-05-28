@@ -4,7 +4,15 @@
 <script src="/static/js/script.js" defer></script>
 <header class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
     <div class="container-app py-3 px-4 flex justify-between items-center">
-        <a href="/" class="px-4 py-2 text-2xl text-slate-800 hover:text-slate-900">IKMII MART</a>
+        <div class="flex items-center space-x-4">
+            <a href="/" class="px-4 py-2 text-2xl text-slate-800 hover:text-indigo-800">IKMI MART</a>
+            {% if "catalog" not in request.path %}
+            <a href="#" class="text-sm text-slate-600 hover:text-indigo-800">Contact</a>
+            <a href="/catalog" class="text-sm text-slate-600 hover:text-indigo-800">Produk Catalog</a>
+            {% endif %}
+        </div>
+
+        {% if "catalog" not in request.path %}
         <div id="cart-icon-container" hx-swap-oob="true" class="z-20">
             <a href="#" hx-get="/cart" hx-target="body" hx-swap="innerHTML" hx-push-url="true"
                 class="flex items-center bg-indigo-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-md transition-all duration-200 relative">
@@ -19,6 +27,7 @@
                 {% endblock %}
             </a>
         </div>
+        {% endif %}
     </div>
 </header>
 
@@ -27,6 +36,7 @@
 <div class="flex flex-col h-full">
 
 
+    {% if "catalog" not in request.path %}
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 my-4 flex-shrink-0">
         <div class="p-3">
             <div class="flex items-center space-x-2">
@@ -39,8 +49,8 @@
                         placeholder="Search for products..." value="{%if last_query %}{{ last_query }}{% endif %}">
                 </div>
                 <div id="start-camera-btn" role="button" class="p-1 rounded-lg hover:bg-gray-100 cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-500" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -54,6 +64,7 @@
             </div>
         </div>
     </section>
+    {% endif %}
 
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 flex-grow flex flex-col">
         <div class="p-3 flex flex-col h-full">
@@ -71,7 +82,8 @@
                         <div class="text-center p-6 bg-gray-50 ">
                             <div class="space-y-3">
                                 <p class="text-gray-700 text-lg font-medium">(╥﹏╥) No products found</p>
-                                <p class="text-gray-500 text-sm">Please try searching again with different keywords or take a clearer photo.</p>
+                                <p class="text-gray-500 text-sm">Please try searching again with different keywords or
+                                    take a clearer photo.</p>
                                 <div class="w-16 h-1 bg-indigo-100 mx-auto rounded-full"></div>
                             </div>
                         </div>
@@ -83,7 +95,8 @@
                                     class="w-full h-60 object-cover"
                                     onerror="this.onerror=null;this.src='/static/noimage.png';">
                                 <div class="p-3  bg-indigo-50/100">
-                                    <h3 class="text-sm font-semibold text-gray-800 mb-1 line-clamp-2 leading-tight min-h-[2.5rem]">
+                                    <h3
+                                        class="text-sm font-semibold text-gray-800 mb-1 line-clamp-2 leading-tight min-h-[2.5rem]">
                                         {{ product.name }}
                                     </h3>
                                     <div class="flex items-center justify-between">
@@ -92,7 +105,7 @@
                                         </p>
                                         <button hx-post="/cart/add?product_id={{ product.id }}"
                                             hx-target="#cart-count-badge" hx-swap="outerHTML" hx-trigger="click"
-                                            class="bg-indigo-600 text-white text-xs px-2 py-1 rounded hover:bg-indigo-800 flex items-center"
+                                            class="bg-indigo-600 text-white text-xs px-2 py-1 rounded hover:bg-indigo-800 flex items-center {% if 'catalog' in request.path %}hidden{% endif %}"
                                             title="Add to Cart">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 mr-1">
@@ -112,8 +125,10 @@
                 <div class="flex flex-col justify-center items-center h-full p-8 text-center space-y-4">
                     <h2 class="text-2xl font-bold text-indigo-600">Welcome to IKMI MART ヾ(＾∇＾)</h2>
                     <div class="max-w-md">
-                        <p class="text-gray-600 mb-2">Enter keywords in the search box or click camera icon to search for products.</p>
-                        <p class="text-gray-600 mb-2">Masukkan kata kunci di kotak pencarian atau gunakan kamera untuk mencari produk.</p>
+                        <p class="text-gray-600 mb-2">Enter keywords in the search box or click camera icon to search
+                            for products.</p>
+                        <p class="text-gray-600 mb-2">Masukkan kata kunci di kotak pencarian atau gunakan kamera untuk
+                            mencari produk.</p>
                     </div>
                 </div>
                 {% endif %}

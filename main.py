@@ -146,7 +146,7 @@ def get_cart(session_id: str, db: Session) -> pl.DataFrame:
 
 
 def query_products(query: str, db: Session) -> pl.DataFrame:
-    df = pl.read_database(query=query, connection=db)
+    df = pl.read_database(query=query, connection=db, infer_schema_length=500)
     logger.debug(df)
     if not df.is_empty():
         df = (
@@ -181,6 +181,9 @@ def query_products(query: str, db: Session) -> pl.DataFrame:
 
 
 def search_product_by_keyword(keyword: str, db: Session) -> pl.DataFrame:
+    if keyword == "CATALOG":
+        q = "SELECT id, barcode, name, price, unit, image_url FROM products"
+        return query_products(q, db)
     q = f"SELECT id, barcode, name, price, unit, image_url FROM products WHERE name ILIKE '%{keyword}%' OR keyword ILIKE '%{keyword}%'"
     return query_products(q, db)
 
@@ -478,23 +481,6 @@ async def checkout_confirm(request: Request, response: Response):
     return response
 
 
-# @app.get("/update-database", response_class=HTMLResponse)
-# async def update_database(request: Request, response:Response):
-#     sqlite_DB = LOCAL_DATABASE_URL
-#     q = f"SELECT * FROM products_new"
-#     df = pl.read_database_uri(query=q, uri=MASTER_DATABASE_URL)
-#     df.write_database(
-#         table_name="products_new",
-#         connection=sqlite_DB,
-#         if_table_exists="replace",
-#         engine="sqlalchemy"
-#     )
-#     context = {
-#         "request": request,
-#     }
-#     return templates.TemplateResponse("index.html", context=context, block_name="update_database")
-
-
 @app.post("/upload", response_class=HTMLResponse)
 async def upload_image(
     request: Request,
@@ -600,3 +586,12 @@ async def upload_image(
     # response = templates.TemplateResponse(
     #     "index.html", context=context, block_names=["result_list"]
     # )
+
+@app.get("/catalog", response_class=HTMLResponse)
+def get_catalog(request: Request, response: Response, db: Session = Depends(get_local_db)):
+    products = search_product_by_keyword("CATALOG", db).sort("name")
+    context = {"request": request, "products": products.to_dicts()}
+    response = templates.TemplateResponse(
+        "index.html", context=context
+    )
+    return response
