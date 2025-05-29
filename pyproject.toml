@@ -27,4 +27,5 @@ dependencies = [
     "pandas",
     "sqlalchemy",
     "python-telegram-bot>=22.1",
+    "rapidfuzz>=3.13.0",
 ]

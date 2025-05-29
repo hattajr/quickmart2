@@ -6,6 +6,7 @@ import uuid
 from collections import deque
 from tempfile import NamedTemporaryFile
 from typing import Any
+from rapidfuzz import process, fuzz, utils
 
 import polars as pl
 from dotenv import load_dotenv
@@ -144,48 +145,90 @@ def get_cart(session_id: str, db: Session) -> pl.DataFrame:
     )
     return df_result
 
+def postprocess_query_result(df: pl.DataFrame) -> pl.DataFrame:
+    df = (
+        df.with_columns(
+            image_url=pl.when(
+                ~(pl.col("image_url").is_not_null())
+                & (pl.col("barcode").is_not_null())
+            )
+            .then(
+                pl.concat_str(
+                    [pl.lit(PRODUCT_IMAGE_URL), pl.col("barcode")], separator="/"
+                )
+            )
+            .otherwise(pl.col("image_url"))
+        )
+        .with_columns(
+            image_url=pl.when(
+                pl.col("image_url").str.starts_with(PRODUCT_IMAGE_URL)
+            )
+            .then(
+                pl.concat_str(
+                    [pl.col("image_url"), pl.lit(IMAGE_FORMAT)], separator="."
+                )
+            )
+            .otherwise(pl.col("image_url"))
+        )
+        .with_columns(name=pl.col("name").str.to_titlecase())
+    )
+    logger.debug(df)
+    return df
 
 def query_products(query: str, db: Session) -> pl.DataFrame:
     df = pl.read_database(query=query, connection=db, infer_schema_length=500)
     logger.debug(df)
     if not df.is_empty():
-        df = (
-            df.with_columns(
-                image_url=pl.when(
-                    ~(pl.col("image_url").is_not_null())
-                    & (pl.col("barcode").is_not_null())
-                )
-                .then(
-                    pl.concat_str(
-                        [pl.lit(PRODUCT_IMAGE_URL), pl.col("barcode")], separator="/"
-                    )
-                )
-                .otherwise(pl.col("image_url"))
-            )
-            .with_columns(
-                image_url=pl.when(
-                    pl.col("image_url").str.starts_with(PRODUCT_IMAGE_URL)
-                )
-                .then(
-                    pl.concat_str(
-                        [pl.col("image_url"), pl.lit(IMAGE_FORMAT)], separator="."
-                    )
-                )
-                .otherwise(pl.col("image_url"))
-            )
-            .with_columns(name=pl.col("name").str.to_titlecase())
-        )
-        logger.debug(df)
+        df = postprocess_query_result(df)
         return df
     return pl.DataFrame()
 
+def fuzz_search_products(keyword: str, db: Session) -> pl.DataFrame:
+    df = pl.read_database(query="SELECT id, barcode, name, brand, keyword, price, unit, image_url FROM products", connection=db, infer_schema_length=500)
+    logger.debug(df)
+    df = df.with_columns(join_str=pl.concat_str(["name", "brand", "keyword"], separator=" ", ignore_nulls=True)).sort("id")
+    prodcuts_names = df['join_str'].to_list()
+    results = process.extract(keyword, prodcuts_names, scorer=fuzz.WRatio, limit=6, processor=utils.default_process, score_cutoff=60)
+    logger.debug(f"Fuzz search results for '{keyword}': {results}")
+    if results:
+        selected_rows = []
+        for result in results:
+            if result[1] >= 60:
+                _d = dict(
+                    product_str = result[0],
+                    score = result[1],
+                    index = result[2]
+                )
+                selected_rows.append(_d)
+        df_matched = pl.from_dicts(selected_rows)
+        logger.debug(df_matched)
+
+        df_result = df.join(
+            df_matched,
+            left_on="join_str",
+            right_on="product_str",
+        ).select(
+            "id", "barcode", "name", "price", "unit", "image_url", "score"
+        ).sort("score", descending=True)
+
+        df_result = postprocess_query_result(df_result)
+        logger.debug(df_result)
+        return df_result
+    return pl.DataFrame()
 
 def search_product_by_keyword(keyword: str, db: Session) -> pl.DataFrame:
     if keyword == "CATALOG":
         q = "SELECT id, barcode, name, price, unit, image_url FROM products"
         return query_products(q, db)
-    q = f"SELECT id, barcode, name, price, unit, image_url FROM products WHERE name ILIKE '%{keyword}%' OR keyword ILIKE '%{keyword}%'"
-    return query_products(q, db)
+    q = f"""
+        SELECT id, barcode, name, price, unit, image_url
+        FROM public.products
+        WHERE (COALESCE(name, '') || ' ' || COALESCE(brand, '') || ' ' || COALESCE(keyword, '')) ILIKE '%{keyword}%';
+    """
+    df = query_products(q, db)
+    if df.is_empty():
+        df = fuzz_search_products(keyword, db)
+    return df
 
 
 def search_product_by_id(id: int | list[int], db: Session) -> pl.DataFrame:
