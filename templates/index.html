@@ -27,6 +27,16 @@
                 {% endblock %}
             </a>
         </div>
+        {%else%}
+        <!-- back button with arrow svg design-->
+        <a href="/" class="flex items-center bg-indigo-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-md transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+        </a>
         {% endif %}
     </div>
 </header>
