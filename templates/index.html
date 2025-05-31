@@ -7,7 +7,7 @@
         <div class="flex items-center space-x-4">
             <a href="/" class="px-4 py-2 text-2xl text-slate-800 hover:text-indigo-800">IKMI MART</a>
             {% if "catalog" not in request.path %}
-            <a href="#" class="text-sm text-slate-600 hover:text-indigo-800">Contact</a>
+            <a href="#" hx-get="/contact" hx-target="body" hx-swap="beforeend" class="text-sm text-slate-600 hover:text-indigo-800">Contact</a>
             <a href="/catalog" class="text-sm text-slate-600 hover:text-indigo-800">Produk Catalog</a>
             {% endif %}
         </div>

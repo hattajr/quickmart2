@@ -638,3 +638,22 @@ def get_catalog(request: Request, response: Response, db: Session = Depends(get_
         "index.html", context=context
     )
     return response
+
+@app.get("/contact", response_class=HTMLResponse)
+def contact(request: Request, response: Response):
+    account_info_1 = {
+        "bank": "HANA BANK",
+        "name": "APRILIYANTO FADA",
+        "account_number": "3989 1053 191007",
+        "phone": "010 5608 2996",
+    }
+    account_info_2 = {
+        "name": "HATTA",
+        "phone": "010 3854 6810",
+    }
+
+    context = {"request": request, "account_info_1": account_info_1, "account_info_2": account_info_2}
+    response = templates.TemplateResponse(
+        name="contact_modal.html", context=context
+    )
+    return response
