@@ -246,11 +246,11 @@ def get_top_queries(db, top_n=15):
     q = """
     SELECT query 
     FROM search_logs 
-    WHERE searched_at > NOW() - INTERVAL '30 days'
+    WHERE searched_at > NOW() - INTERVAL '14 days'
       AND items_found BETWEEN 1 AND 10
     """
     df = pl.read_database(query=q, connection=db).filter(
-        (pl.col("query").str.len_chars() >= 5) &
+        (pl.col("query").str.len_chars() >= 4) &
         pl.col("query").str.contains("^[a-zA-Z0-9 ]+$")
     )
     
