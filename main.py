@@ -3,7 +3,7 @@ import os
 import shutil
 import sys
 import uuid
-from collections import deque
+from collections import deque, defaultdict, Counter
 from tempfile import NamedTemporaryFile
 from typing import Any
 from rapidfuzz import process, fuzz, utils
@@ -242,16 +242,49 @@ def search_product_by_id(id: int | list[int], db: Session) -> pl.DataFrame:
         logger.debug(query)
     return query_products(query, db)
 
+def get_top_queries(db, top_n=15):
+    q = """
+    SELECT query 
+    FROM search_logs 
+    WHERE searched_at > NOW() - INTERVAL '30 days'
+      AND items_found BETWEEN 1 AND 10
+    """
+    df = pl.read_database(query=q, connection=db).filter(
+        (pl.col("query").str.len_chars() >= 5) &
+        pl.col("query").str.contains("^[a-zA-Z0-9 ]+$")
+    )
+    
+    queries = [q.strip().lower() for q in df['query'].to_list()]
+    queries = [q.replace("  ", " ") for q in queries if q]  # Remove empty strings and extra spaces
+    counts = Counter(queries)
+
+    unvisited = set(counts.keys())
+    clusters = []
+
+    while unvisited:
+        q = unvisited.pop()
+        matches = process.extract(q, unvisited, scorer=fuzz.token_sort_ratio, limit=20)
+        group = [q] + [m[0] for m in matches if m[1] > 85]
+        unvisited.difference_update(group[1:]) 
+        clusters.append(group)
+
+    results = []
+    for group in clusters:
+        canonical = max(group, key=lambda q: (len(q)))
+        total = sum(counts[q] for q in group)
+        results.append((canonical, total))
+
+    return sorted(results, key=lambda x: x[1], reverse=True)[:top_n]
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request, response: Response, db: Session = Depends(get_local_db)):
+    top_queries = get_top_queries(db)
+    context = {"request": request, "top_queries": top_queries}
     if not request.headers.get("HX-Request"):
-        response = templates.TemplateResponse(request=request, name="index.html")
+        response = templates.TemplateResponse(request=request, name="index.html", context=context)
         response.delete_cookie(SESSION_COOKIE_NAME)
         logger.debug(session_data.keys())
         return response
-
-    context = {"request": request}
     response = templates.TemplateResponse(
         request=request, name="index.html", context=context
     )
@@ -273,15 +306,19 @@ def search(
         return response
 
     session_id, response = get_or_create_session(request=request, response=response)
+
+    top_queries = get_top_queries(db)
     url = request.headers.get("HX-Current-URL").split("/")[-1]
     if url == "cart":
         logger.debug(session_data[session_id])
+        q = session_data[session_id]["search_history"][-1] if session_data[session_id]["search_history"] else ""
         products_search = search_product_by_keyword(q, db)
         products = get_cart(session_id, db=db)
         context = dict(
             products=products_search.to_dicts(),
             total_price=products["total_price"].sum(),
             total_items=products["qty"].sum(),
+            top_queries=top_queries,
         )
         return templates.TemplateResponse(
             request=request, name="index.html", context=context
