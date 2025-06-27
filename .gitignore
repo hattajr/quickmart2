@@ -1,6 +1,6 @@
 .trash/
 .env*
-.venv*/
+.venv
 __pycache__/
 *.db
 data/

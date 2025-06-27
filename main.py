@@ -26,7 +26,9 @@ from services.db_services import log_search_query
 load_dotenv()
 
 logger.remove()
-logger.add(sys.stderr, level=os.getenv("LOG_LEVEL", "DEBUG"))
+logger.add(sys.stderr, level=os.getenv("LOG_LEVEL", "DEBUG").upper())
+logger.info(f"Web server run at port {os.getenv('APP_PORT')}")
+
 
 app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -249,7 +251,12 @@ def get_top_queries(db, top_n=15):
     WHERE searched_at > NOW() - INTERVAL '14 days'
       AND items_found BETWEEN 1 AND 10
     """
-    df = pl.read_database(query=q, connection=db).filter(
+    df = pl.read_database(query=q, connection=db)
+
+    if df.is_empty():
+        return []
+    
+    df = df.filter(
         (pl.col("query").str.len_chars() >= 4) &
         pl.col("query").str.contains("^[a-zA-Z0-9 ]+$")
     )

@@ -26,16 +26,14 @@ QuickMart2 lets users search grocery products by text or image, using Gemini AI 
 
 1. Set up environment variables in `.env.dev` (development) or `.env.prod` (production)
 
-2. Deploy using the deployment script:
-   ```bash
-   # For development
-   ./deploy.sh dev
-   
-   # For production
-   ./deploy.sh prod
-   ```
-
-3. Access at `http://localhost:8000` (or configured APP_PORT)
-
+2. Deploy using Docker Compose:
+   - For Production:
+      ```bash
+      docker compose -p ikmimart_prod -f docker-compose.base.yml -f docker-compose.prod.yml --env-file .env.prod up -d
+      ```
+   - For Development at port `http://192.168.50.14:8001`:
+      ```bash
+      docker compose -p ikmimart_dev -f docker-compose.base.yml -f docker-compose.dev.yml --env-file .env.dev up -d
+      ```   
 
 

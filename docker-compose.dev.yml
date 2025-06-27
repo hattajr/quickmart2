@@ -1,36 +1,7 @@
-# docker-compose.dev.yml (Development overrides)
 version: '3.8'
+# docker compose -p ikmimart_dev -f docker-compose.base.yml -f docker-compose.dev.yml up --build
 services:
-  migrate:
-    container_name: ikmimart_dev_migrate
-    env_file:
-      - .env.dev
-    
   app:
-    container_name: ikmimart_app_dev
-    env_file:
-      - .env.dev
     volumes:
       - .:/app
-    ports:
-      - "${APP_PORT}:80"
     command: uv run -- uvicorn main:app --host 0.0.0.0 --port 80 --reload
-  
-  db:
-    container_name: ikmimart_postgres_dev
-    env_file:
-      - .env.dev
-    volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
-    ports:
-      - "${RDB_PORT}:5432"
-  
-  redis:
-    container_name: ikmimart_redis_dev
-    ports:
-      - "${REDIS_PORT}:6379"
-  
-
-volumes:
-  postgres_data_dev:
-    driver: local
