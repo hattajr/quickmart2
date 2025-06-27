@@ -1,18 +1,9 @@
 # docker-compose.prod.yml (prodelopment overrides)
 version: '3.8'
 services:
-  migrate:
-    container_name: ikmimart_prod_migrate
-    env_file:
-      - .env.prod
     
   app:
-    container_name: ikmimart_app_prod
-    env_file:
-      - .env.prod
-    # volumes:
-    #   - .:/app
-    command: uv run -- uvicorn main:app --host 0.0.0.0 --port 80
+    command: uv run -- uvicorn main:app --host 0.0.0.0 --port 80 
 
   nginx:
     image: nginx:alpine
@@ -28,26 +19,11 @@ services:
       - ./nginx/certs:/etc/nginx/certs:ro
     networks:
       - ikmimart_network
-
-  
-  db:
-    container_name: ikmimart_postgres_prod
-    env_file:
-      - .env.prod
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "${RDB_PORT}:5432"
-  
-  redis:
-    container_name: ikmimart_redis_prod
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
   
   bot:
     build: .
     env_file:
-      - .env.prod
+      - .env.${ENV}
     restart: always
     command: python bot.py
     depends_on:
@@ -57,19 +33,14 @@ services:
     
   grafana:
     image: grafana/grafana:latest
-    container_name: ikmimart_grafana
     restart: always
-    # ports:
-    #   - "3000"
     env_file:
-      - .env.prod
+      - .env.${ENV}
     depends_on:
       - db
     networks:
       - ikmimart_network
 
 volumes:
-  postgres_data:
-    driver: local
   grafana_data:
     driver: local

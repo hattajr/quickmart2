@@ -4,28 +4,31 @@ services:
   migrate:
     build: .
     command: python /app/migrations/migrate.py
-    volumes:
-      - ./migrations:/app/migrations
     depends_on:
       - db
     networks:
-      - ikmimart_network  # Ensure it's on the same network if DB is isolated
-
+      - ikmimart_network
+    env_file:
+      - .env.${ENV}
 
   app:
     build: .
     restart: always
-    # No container_name here - will be defined in env-specific files
+    ports:
+      - "${APP_PORT}:80"
     depends_on:
       - db
       - redis
     networks:
       - ikmimart_network
+    env_file:
+      - .env.${ENV}
   
   db:
     image: postgres:17.4
     restart: always
-    # No container_name here - will be defined in env-specific files
+    ports:
+      - "${RDB_PORT}:5432"
     environment:
       - POSTGRES_USER=${RDB_USER}
       - POSTGRES_PASSWORD=${RDB_PASSWORD}
@@ -38,7 +41,6 @@ services:
   redis:
     image: redis:7.4
     restart: always
-    # No container_name here - will be defined in env-specific files
     command: ["redis-server", "--maxmemory", "2gb", "--maxmemory-policy", "allkeys-lru"]
     networks:
       - ikmimart_network
@@ -47,3 +49,7 @@ networks:
   ikmimart_network:
     driver: bridge
 
+
+volumes:
+  postgres_data:
+    driver: local
