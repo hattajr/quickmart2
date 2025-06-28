@@ -132,10 +132,6 @@
 
     <section class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 flex-grow flex flex-col">
         <div class="p-3 flex flex-col h-full">
-            <div class="flex items-center mb-2">
-                <img id="loading-indicator" class="my-indicator w-5 h-5" src="/static/rings.svg" alt="Loading..." />
-                <h2 class="text-lg font-semibold text-white mr-2">Results</h2>
-            </div>
             {%block result_list%}
             <div id="result-container"
                 class="flex-grow overflow-y-auto p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -206,9 +202,6 @@
                         <!-- check price online at url ikmimart.cisseoul.com only text no link-->
                         <p class="text-gray-600">Check our product catalog online at <span
                                 class="text-indigo-600 font-semibold">ikmimart.cisseoul.com</span></p>
-
-
-
                     </div>
                 </div>
                 {% endif %}
@@ -219,5 +212,8 @@
 
 </div>
 
+<div class="flex items-center mb-2">
+    <img id="loading-indicator" class="my-indicator w-20 h-20" src="/static/rings.svg" alt="Loading..." />
+</div>
 
 {% endblock %}

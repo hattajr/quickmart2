@@ -65,12 +65,13 @@
             display: none;
         }
 
-        .htmx-request .my-indicator {
-            display: inline;
-        }
-
         .htmx-request.my-indicator {
             display: inline;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
         }
 
 
