@@ -311,9 +311,7 @@ def search(
         response.delete_cookie(SESSION_COOKIE_NAME)
         logger.debug(session_data.keys())
         return response
-
     session_id, response = get_or_create_session(request=request, response=response)
-
     top_queries = get_top_queries(db)
     url = request.headers.get("HX-Current-URL").split("/")[-1]
     if url == "cart":
@@ -668,11 +666,6 @@ async def upload_image(
         samesite="lax",
     )
     return response
-
-    # context = {"request": request, "products": products.to_dicts()}
-    # response = templates.TemplateResponse(
-    #     "index.html", context=context, block_names=["result_list"]
-    # )
 
 @app.get("/catalog", response_class=HTMLResponse)
 def get_catalog(request: Request, response: Response, db: Session = Depends(get_local_db)):
